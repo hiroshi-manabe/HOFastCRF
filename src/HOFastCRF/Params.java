@@ -19,8 +19,9 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.io.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Parameters class

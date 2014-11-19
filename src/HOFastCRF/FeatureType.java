@@ -19,7 +19,8 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract class for feature types

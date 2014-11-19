@@ -19,8 +19,11 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.util.*;
-import Parallel.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import Parallel.Schedulable;
 
 /**
  * Implementation of the Viterbi algorithm

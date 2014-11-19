@@ -19,8 +19,8 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.util.List;
 
 /**
  * Class for a data sequence

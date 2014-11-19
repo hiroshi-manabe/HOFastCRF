@@ -19,8 +19,10 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.util.*;
-import Parallel.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import Parallel.Schedulable;
 
 /**
  * Generator class for the features in each sequence

@@ -19,10 +19,15 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.io.*;
-import java.util.*;
-import edu.stanford.nlp.optimization.*;
-import Parallel.*;
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
+
+import edu.stanford.nlp.optimization.QNMinimizer;
+import Parallel.Scheduler;
 
 /**
  * High-order CRF class

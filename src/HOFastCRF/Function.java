@@ -19,9 +19,11 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.util.*;
-import edu.stanford.nlp.optimization.*;
-import Parallel.*;
+import java.util.Arrays;
+import java.util.List;
+
+import Parallel.Scheduler;
+import edu.stanford.nlp.optimization.DiffFunction;
 
 /**
  * Loglikelihood function class

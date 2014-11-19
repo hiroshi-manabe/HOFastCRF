@@ -19,8 +19,10 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.util.*;
-import Parallel.*;
+import java.util.Arrays;
+import java.util.List;
+
+import Parallel.Schedulable;
 
 /**
  * Algorithm for computing the partition functions and expected feature scores
