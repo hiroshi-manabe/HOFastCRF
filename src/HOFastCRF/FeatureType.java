@@ -38,7 +38,7 @@ public abstract class FeatureType {
      * @param pos Input position
      * @return List of observations
      */
-    public abstract ArrayList<String> generateObsAt(DataSequence seq, int pos);
+    public abstract List<String> generateObsAt(DataSequence seq, int pos);
 
     /**
      * Generate the features activated at a position and a label pattern.
@@ -47,10 +47,10 @@ public abstract class FeatureType {
      * @param labelPat Label pattern of the features
      * @return List of activated features
      */
-    public ArrayList<Feature> generateFeaturesAt(DataSequence seq, int pos, String labelPat) {
-        ArrayList<Feature> features = new ArrayList<Feature>();
+    public List<Feature> generateFeaturesAt(DataSequence seq, int pos, String labelPat) {
+        List<Feature> features = new ArrayList<Feature>();
         if (Utility.getOrder(labelPat) == order()) {
-            ArrayList<String> obs = generateObsAt(seq, pos);
+            List<String> obs = generateObsAt(seq, pos);
             for (String o : obs) {
                 features.add(new Feature(o, labelPat, 1.0));
             }

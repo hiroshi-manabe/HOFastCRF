@@ -30,7 +30,7 @@ import Parallel.*;
 public class SentenceFeatGenerator implements Schedulable {
 
     int curID; // Current task ID (for parallelization)
-    ArrayList trainData; // List of training sequences
+    List<DataSequence> trainData; // List of training sequences
     FeatureGenerator featGen; // Feature generator
 
     /**
@@ -38,7 +38,7 @@ public class SentenceFeatGenerator implements Schedulable {
      * @param data Training data
      * @param fgen Feature generator
      */
-    public SentenceFeatGenerator(ArrayList data, FeatureGenerator fgen) {
+    public SentenceFeatGenerator(List<DataSequence> data, FeatureGenerator fgen) {
         curID = -1;
         trainData = data;
         featGen = fgen;
@@ -51,18 +51,19 @@ public class SentenceFeatGenerator implements Schedulable {
      */
     public Object compute(int taskID) {
         DataSequence seq = (DataSequence) trainData.get(taskID);
-        seq.features = new ArrayList[seq.length()][featGen.patternMap.size()];
+        seq.features = new ArrayList<List<List<Integer>>>(featGen.patternMap.size());
         
         for (int pos = 0; pos < seq.length(); pos++) {
+        	seq.features.add(new ArrayList<List<Integer>>());
             for (int patID = 0; patID < featGen.patternMap.size(); patID++) {
-                seq.features[pos][patID] = new ArrayList<Integer>();
-                ArrayList<String> obs = featGen.generateObs(seq, pos);
+                seq.features.get(pos).add(new ArrayList<Integer>());
+                List<String> obs = featGen.generateObs(seq, pos);
                 for (String o : obs) {
                     Integer oID = featGen.getObsIndex(o);
                     if (oID != null) {
                         Integer feat = (Integer) featGen.featureMap.get(new FeatureIndex(oID, patID));
                         if (feat != null) {
-                            seq.features[pos][patID].add(feat);
+                            seq.features.get(pos).get(patID).add(feat);
                         }
                     }
                 }

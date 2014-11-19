@@ -19,7 +19,6 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package HOFastCRF;
 
-import java.io.*;
 import java.util.*;
 import java.text.*;
 
@@ -40,16 +39,16 @@ public class Scorer {
      * @param labelmap Label map
      * @param RM_SUFFIX If set to true, suffixes of labels after '-' will be removed
      */
-    public Scorer(ArrayList trueData, ArrayList predictedData, LabelMap labelmap, boolean RM_SUFFIX) {
+    public Scorer(List<DataSequence> trueData, List<DataSequence> predictedData, LabelMap labelmap, boolean RM_SUFFIX) {
         labels = new String[trueData.size()][];
         for (int i = 0; i < trueData.size(); i++) {
-            DataSequence seq = (DataSequence) trueData.get(i);
+            DataSequence seq = trueData.get(i);
             labels[i] = labelmap.revArray(seq.labels);
         }
         
         predicted = new String[predictedData.size()][];
         for (int i = 0; i < predictedData.size(); i++) {
-            DataSequence seq = (DataSequence) predictedData.get(i);
+            DataSequence seq = predictedData.get(i);
             predicted[i] = labelmap.revArray(seq.labels);
         }
         
@@ -64,8 +63,8 @@ public class Scorer {
      * @return F1 score
      */
     public double phraseScore() {
-        HashMap<String, Integer> labelht = new HashMap<String, Integer>();
-        ArrayList<String> labs = new ArrayList<String>();
+        Map<String, Integer> labelht = new HashMap<String, Integer>();
+        List<String> labs = new ArrayList<String>();
         collectLabels(labels, predicted, labelht, labs);
 
         double nTokens = 0;
@@ -164,8 +163,8 @@ public class Scorer {
      * @return F1 score
      */
     public double tokenScore() {
-        HashMap<String, Integer> labelht = new HashMap<String, Integer>();
-        ArrayList<String> labs = new ArrayList<String>();
+        Map<String, Integer> labelht = new HashMap<String, Integer>();
+        List<String> labs = new ArrayList<String>();
         collectLabels(labels, predicted, labelht, labs);
 
         double nTokens = 0;
@@ -223,8 +222,8 @@ public class Scorer {
      * @return Accuracy at sequence level
      */
     public double sentenceScore() {
-        HashMap<String, Integer> labelht = new HashMap<String, Integer>();
-        ArrayList<String> labs = new ArrayList<String>();
+        Map<String, Integer> labelht = new HashMap<String, Integer>();
+        List<String> labs = new ArrayList<String>();
         collectLabels(labels, predicted, labelht, labs);
         double nMatched = 0;
         for (int s = 0; s < labels.length; s++) {
@@ -248,8 +247,8 @@ public class Scorer {
      * @return Macro-averaged accuracy
      */
     public double macroAccuracyScore() {
-        HashMap<String, Integer> labelht = new HashMap<String, Integer>();
-        ArrayList<String> labs = new ArrayList<String>();
+        Map<String, Integer> labelht = new HashMap<String, Integer>();
+        List<String> labs = new ArrayList<String>();
         collectLabels(labels, predicted, labelht, labs);
 
         double[] nToken = new double[labelht.size()];
@@ -281,7 +280,7 @@ public class Scorer {
         return ratio(totalAcc, labelht.size());
     }
     
-    private void collectLabels(String[][] labels, String[][] predicted, HashMap<String,Integer> labelht, ArrayList<String> labs) {
+    private void collectLabels(String[][] labels, String[][] predicted, Map<String,Integer> labelht, List<String> labs) {
         for (int s = 0; s < labels.length; s++) {
             for (int t = 0; t < labels[s].length; t++) {
                 if (!labels[s][t].equals("O") && !labelht.containsKey(labels[s][t])) {
@@ -342,13 +341,13 @@ public class Scorer {
  */
 class DisplayTable {
 
-    ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>(); // Rows of the table
+    List<List<String>> rows = new ArrayList<List<String>>(); // Rows of the table
 
     DisplayTable() {
     }
 
     void addRow(Object[] entries) {
-        ArrayList<String> row = new ArrayList<String>();
+        List<String> row = new ArrayList<String>();
         for (int i = 0; i < entries.length; i++) {
             row.add(entries[i].toString());
         }

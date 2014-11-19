@@ -30,7 +30,7 @@ public class DataSequence {
 	
     Object[] inputs; // Observation array
     int[] labels; // Label array
-    ArrayList<Integer>[][] features; // Map from [pos,patID] to list of feature IDs
+    List<List<List<Integer>>> features; // Map from [pos,patID] to list of feature IDs
     LabelMap labelmap; // Map from label strings to their IDs
     
     /**
@@ -97,8 +97,8 @@ public class DataSequence {
      * @param patID Pattern ID
      * @return List of features
      */
-    public ArrayList<Integer> getFeatures(int pos, int patID) {
-        return features[pos][patID];
+    public List<Integer> getFeatures(int pos, int patID) {
+        return features.get(pos).get(patID);
     }
 	
     /**

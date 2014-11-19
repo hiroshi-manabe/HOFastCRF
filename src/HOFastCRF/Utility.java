@@ -50,9 +50,9 @@ public class Utility {
      * @param labelPat Label pattern
      * @return List of proper prefixes
      */
-    public static ArrayList<String> generateProperPrefixes(String labelPat) {
+    public static List<String> generateProperPrefixes(String labelPat) {
         String pats = new String(labelPat);
-        ArrayList<String> res = new ArrayList<String>();
+        List<String> res = new ArrayList<String>();
         while (pats.contains("|")) {
             pats = pats.substring(pats.indexOf('|') + 1);
             if (pats.contains("|")) {
@@ -67,9 +67,9 @@ public class Utility {
      * @param labelPat Label pattern
      * @return List of suffixes
      */
-    public static ArrayList<String> generateSuffixes(String labelPat) {
+    public static List<String> generateSuffixes(String labelPat) {
         String pats = new String(labelPat);
-        ArrayList<String> res = new ArrayList<String>();
+        List<String> res = new ArrayList<String>();
         res.add(pats);
         while (pats.contains("|")) {
             pats = pats.substring(0, pats.lastIndexOf("|"));

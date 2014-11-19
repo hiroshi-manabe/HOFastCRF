@@ -30,7 +30,7 @@ public class LogliComputer implements Schedulable {
 
     int curID; // Current task ID (for parallelization)
     FeatureGenerator featureGen; // Feature generator
-    ArrayList trainData; // List of training sequences
+    List<DataSequence> trainData; // List of training sequences
     double[] lambda; // Lambda vector
     Loglikelihood logli; // Loglikelihood value and derivatives
     final int BASE = 1; // Base of the logAlpha array
@@ -42,7 +42,7 @@ public class LogliComputer implements Schedulable {
      * @param td List of training sequences
      * @param loglh Initial loglikelihood and its derivatives (partially computed from class Function)
      */
-    public LogliComputer(double[] lambdaValues, FeatureGenerator fgen, ArrayList td, Loglikelihood loglh) {
+    public LogliComputer(double[] lambdaValues, FeatureGenerator fgen, List<DataSequence> td, Loglikelihood loglh) {
         curID = -1;
         featureGen = fgen;
         trainData = td;
@@ -114,8 +114,8 @@ public class LogliComputer implements Schedulable {
         for (int pos = 0; pos < seq.length(); pos++) {
             String labelPat = featureGen.generateLabelPattern(seq, pos);
             int sID = featureGen.getBackwardStateIndex(labelPat);
-            for (int patID : featureGen.allSuffixes[sID]) {
-                ArrayList<Integer> feats = featureGen.getFeatures(seq, pos, patID);
+            for (int patID : featureGen.allSuffixes.get(sID)) { 
+                List<Integer> feats = featureGen.getFeatures(seq, pos, patID);
                 for (int index : feats) {
                     Feature feat = featureGen.featureList.get(index);
                     res.derivatives[index] += feat.value;
@@ -137,14 +137,14 @@ public class LogliComputer implements Schedulable {
         for (int j = 0; j < seq.length(); j++) {
             Arrays.fill(logAlpha[j + BASE], Double.NEGATIVE_INFINITY);
             for (int i = 1; i < featureGen.forwardStateMap.size(); i++) {
-                ArrayList<Integer> prevState1 = featureGen.forwardTransition1[i];
-                ArrayList<Integer> prevState2 = featureGen.forwardTransition2[i];
+                List<Integer> prevState1 = featureGen.forwardTransition1.get(i);
+                List<Integer> prevState2 = featureGen.forwardTransition2.get(i);
                 for (int k = 0; k < prevState1.size(); k++) {
                     int pkID = prevState1.get(k);
                     int pkyID = prevState2.get(k);
                     double featuresScore = 0.0;
-                    for (Integer patID : featureGen.allSuffixes[pkyID]) {
-                        ArrayList<Integer> feats = featureGen.getFeatures(seq, j, patID);
+                    for (Integer patID : featureGen.allSuffixes.get(pkyID)) {
+                        List<Integer> feats = featureGen.getFeatures(seq, j, patID);
                         featuresScore += featureGen.computeFeatureScores(feats, lambda);
                     }
                     logAlpha[j + BASE][i] = Utility.logSumExp(logAlpha[j + BASE][i], logAlpha[j + BASE - 1][pkID] + featuresScore);
@@ -184,8 +184,8 @@ public class LogliComputer implements Schedulable {
                     int skID = featureGen.backwardTransition[i][y];
                     if (skID != -1) {
                         double featuresScore = 0.0;
-                        for (Integer patID : featureGen.allSuffixes[skID]) {
-                            ArrayList<Integer> feats = featureGen.getFeatures(seq, j, patID);
+                        for (Integer patID : featureGen.allSuffixes.get(skID)) {
+                            List<Integer> feats = featureGen.getFeatures(seq, j, patID);
                             featuresScore += featureGen.computeFeatureScores(feats, lambda);
                         }
                         logBeta[j][i] = Utility.logSumExp(logBeta[j][i], logBeta[j + 1][skID] + featuresScore);
@@ -210,13 +210,13 @@ public class LogliComputer implements Schedulable {
             for (int pos = 0; pos < seq.length(); pos++) {
                 marginal[zID][pos] = Double.NEGATIVE_INFINITY;
                     
-                for (int i = 0; i < featureGen.patternTransition1[zID].size(); i++) {
-                    int piID = featureGen.patternTransition1[zID].get(i);
-                    int piyID = featureGen.patternTransition2[zID].get(i);
+                for (int i = 0; i < featureGen.patternTransition1.get(zID).size(); i++) {
+                    int piID = featureGen.patternTransition1.get(zID).get(i);
+                    int piyID = featureGen.patternTransition2.get(zID).get(i);
                         
                     double featuresScore = 0.0;
-                    for (Integer patID : featureGen.allSuffixes[piyID]) {
-                        ArrayList<Integer> feats = featureGen.getFeatures(seq, pos, patID);
+                    for (Integer patID : featureGen.allSuffixes.get(piyID)) {
+                        List<Integer> feats = featureGen.getFeatures(seq, pos, patID);
                         featuresScore += featureGen.computeFeatureScores(feats, lambda);
                     }
                     marginal[zID][pos] = Utility.logSumExp(marginal[zID][pos], logAlpha[BASE + pos - 1][piID] + logBeta[pos + 1][piyID] + featuresScore);
@@ -239,7 +239,7 @@ public class LogliComputer implements Schedulable {
         Arrays.fill(expectation, 0.0);
         for (int zID = 0; zID < featureGen.patternMap.size(); zID++) {
             for (int pos = 0; pos  < seq.length(); pos ++) {
-                ArrayList<Integer> feats = featureGen.getFeatures(seq, pos, zID);
+                List<Integer> feats = featureGen.getFeatures(seq, pos, zID);
                 for (int index : feats) {
                     Feature feat = featureGen.featureList.get(index);
                     expectation[index] += feat.value * marginal[zID][pos];

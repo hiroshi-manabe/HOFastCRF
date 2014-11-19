@@ -32,7 +32,7 @@ public class Viterbi implements Schedulable {
     int curID; // Current task ID (for parallelization)
     FeatureGenerator featureGen; // Feature generator
     double[] lambda; // Lambda vector
-    ArrayList data; // List of testing sequences
+    List<DataSequence> data; // List of testing sequences
     final int BASE = 1; // Base of the logAlpha array
 
     /**
@@ -41,7 +41,7 @@ public class Viterbi implements Schedulable {
      * @param lambda Lambda vector
      * @param data Testing data
      */
-    public Viterbi(FeatureGenerator featureGen, double[] lambda, ArrayList data) {
+    public Viterbi(FeatureGenerator featureGen, double[] lambda, List<DataSequence> data) {
         curID = -1;
         this.featureGen = featureGen;
         this.lambda = lambda;
@@ -63,14 +63,14 @@ public class Viterbi implements Schedulable {
         for (int j = 0; j < seq.length(); j++) {
             Arrays.fill(maxScore[j + BASE], Double.NEGATIVE_INFINITY);
             for (int i = 1; i < featureGen.forwardStateMap.size(); i++) {
-                ArrayList<Integer> prevState1 = featureGen.forwardTransition1[i];
-                ArrayList<Integer> prevState2 = featureGen.forwardTransition2[i];
+                List<Integer> prevState1 = featureGen.forwardTransition1.get(i);
+                List<Integer> prevState2 = featureGen.forwardTransition2.get(i);
                 for (int k = 0; k < prevState1.size(); k++) {
                     int pkID = prevState1.get(k);
                     int pkyID = prevState2.get(k);
                     String pky = featureGen.backwardStateList.get(pkyID);
-                    ArrayList<Feature> features = featureGen.generateFeatures(seq, j, pky);
-                    ArrayList<Integer> feats = featureGen.getFeatureID(features);
+                    List<Feature> features = featureGen.generateFeatures(seq, j, pky);
+                    List<Integer> feats = featureGen.getFeatureID(features);
                     double featuresScore = featureGen.computeFeatureScores(feats, lambda);
                     if (maxScore[j + BASE][i] < featuresScore + maxScore[j + BASE - 1][pkID]) {
                         maxScore[j + BASE][i] = featuresScore + maxScore[j + BASE - 1][pkID];

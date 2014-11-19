@@ -28,7 +28,7 @@ import java.io.*;
  */
 public class LabelMap {
 
-    ArrayList<String> mapTable; // List of labels
+    List<String> mapTable; // List of labels
 
     /**
      * Construct an empty label map.
@@ -74,7 +74,7 @@ public class LabelMap {
      * @param labelStrList List of label strings
      * @return List of indices of the input labels
      */
-    public int[] mapArrayList(ArrayList<String> labelStrList) {
+    public int[] mapList(List<String> labelStrList) {
         int[] result = new int[labelStrList.size()];
         for (int i = 0; i < result.length; i++) {
             result[i] = map(labelStrList.get(i));

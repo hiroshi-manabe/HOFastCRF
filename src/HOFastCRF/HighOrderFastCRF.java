@@ -28,7 +28,7 @@ import Parallel.*;
  * High-order CRF class
  * @author Nguyen Viet Cuong
  */
-public class HighOrderCRF {
+public class HighOrderFastCRF {
 
     FeatureGenerator featureGen; // Feature generator
     double[] lambda; // Feature weight vector
@@ -37,7 +37,7 @@ public class HighOrderCRF {
      * Construct and initialize a high-order CRF from feature generator.
      * @param fgen Feature generator
      */
-    public HighOrderCRF(FeatureGenerator fgen) {
+    public HighOrderFastCRF(FeatureGenerator fgen) {
         featureGen = fgen;
         lambda = new double[featureGen.featureMap.size()];
         Arrays.fill(lambda, 0.0);
@@ -47,7 +47,7 @@ public class HighOrderCRF {
      * Train a high-order CRF from data.
      * @param data Training data
      */
-    public void train(ArrayList data) {
+    public void train(List<DataSequence> data) {
         QNMinimizer qn = new QNMinimizer();
         Function df = new Function(featureGen, data);
         lambda = qn.minimize(df, featureGen.params.epsForConvergence, lambda, featureGen.params.maxIters);
@@ -57,7 +57,7 @@ public class HighOrderCRF {
      * Run Viterbi algorithm on testing data.
      * @param data Testing data
      */
-    public void runViterbi(ArrayList data) throws Exception {
+    public void runViterbi(List<DataSequence> data) throws Exception {
         Viterbi tester = new Viterbi(featureGen, lambda, data);
         Scheduler sch = new Scheduler(tester, featureGen.params.numthreads, Scheduler.DYNAMIC_NEXT_AVAILABLE);
         sch.run();
