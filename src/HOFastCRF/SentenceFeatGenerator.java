@@ -50,7 +50,7 @@ public class SentenceFeatGenerator implements Schedulable {
      * @return The updated sequence
      */
     public Object compute(int taskID) {
-        DataSequence seq = (DataSequence) trainData.get(taskID);
+        DataSequence seq = trainData.get(taskID);
         seq.features = new ArrayList<List<List<Integer>>>(featGen.patternMap.size());
         
         for (int pos = 0; pos < seq.length(); pos++) {
@@ -61,7 +61,7 @@ public class SentenceFeatGenerator implements Schedulable {
                 for (String o : obs) {
                     Integer oID = featGen.getObsIndex(o);
                     if (oID != null) {
-                        Integer feat = (Integer) featGen.featureMap.get(new FeatureIndex(oID, patID));
+                        Integer feat = featGen.featureMap.get(new FeatureIndex(oID, patID));
                         if (feat != null) {
                             seq.features.get(pos).get(patID).add(feat);
                         }

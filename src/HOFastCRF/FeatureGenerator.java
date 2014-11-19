@@ -230,7 +230,7 @@ public class FeatureGenerator {
      * @return Observation index
      */
     public Integer getObsIndex(String obs) {
-        return (Integer) obsMap.get(obs);
+        return obsMap.get(obs);
     }
 
     /**
@@ -239,7 +239,7 @@ public class FeatureGenerator {
      * @return Pattern index
      */
     public Integer getPatternIndex(String p) {
-        return (Integer) patternMap.get(p);
+        return patternMap.get(p);
     }
     
     /**
@@ -248,7 +248,7 @@ public class FeatureGenerator {
      * @return Index of the forward state
      */
     public Integer getForwardStateIndex(String p) {
-        return (Integer) forwardStateMap.get(p);
+        return forwardStateMap.get(p);
     }
 
     /**
@@ -257,7 +257,7 @@ public class FeatureGenerator {
      * @return Index of the backward state
      */
     public Integer getBackwardStateIndex(String p) {
-        return (Integer) backwardStateMap.get(p);
+        return backwardStateMap.get(p);
     }
 
     /**
@@ -294,7 +294,7 @@ public class FeatureGenerator {
         featureMap = new HashMap<FeatureIndex, Integer>();
         featureList = new ArrayList<Feature>();
         for (int t = 0; t < trainData.size(); t++) {
-            DataSequence seq = (DataSequence) trainData.get(t);
+            DataSequence seq = trainData.get(t);
             for (int pos = 0; pos < seq.length(); pos++) {
                 String labelPat = generateLabelPattern(seq, pos);
                 List<Feature> features = generateFeatures(seq, pos, labelPat);
@@ -351,7 +351,7 @@ public class FeatureGenerator {
         backwardStateList = new ArrayList<String>();
         Iterator <String>iter = forwardStateMap.keySet().iterator();
         while (iter.hasNext()) {
-            String p = (String) iter.next();
+            String p = iter.next();
             for (int y = 0; y < params.numLabels; y++) {
                 String py = p.equals("") ? y + "" : y + "|" + p;
                 if (getBackwardStateIndex(py) == null) {
@@ -472,7 +472,7 @@ public class FeatureGenerator {
         
         Iterator<String> iter = forwardStateMap.keySet().iterator();
         while (iter.hasNext()) {
-            String pk = (String) iter.next();
+            String pk = iter.next();
             int pkID = getForwardStateIndex(pk);
             
             for (int y = 0; y < params.numLabels; y++) {
@@ -496,7 +496,7 @@ public class FeatureGenerator {
 		
         Iterator<String> iter = backwardStateMap.keySet().iterator();
         while (iter.hasNext()) {
-            String si = (String) iter.next();
+            String si = iter.next();
             int siID = getBackwardStateIndex(si);
             for (int y = 0; y < params.numLabels; y++) {
                 String siy = y + "|" + si;
@@ -527,7 +527,7 @@ public class FeatureGenerator {
 		
         Iterator<String> forwardIter = forwardStateMap.keySet().iterator();
         while (forwardIter.hasNext()) {
-            String pi = (String) forwardIter.next();
+            String pi = forwardIter.next();
             int piID = getForwardStateIndex(pi);
             for (int y = 0; y < params.numLabels; y++) {
                 String piy = pi.equals("") ? y + "" : y + "|" + pi;
@@ -563,7 +563,7 @@ public class FeatureGenerator {
     public List<Integer> getFeatureID(List<Feature> fs) {
         List<Integer> feats = new ArrayList<Integer>();
         for (Feature f : fs) {
-            Integer feat = (Integer) featureMap.get(getFeatureIndex(f));
+            Integer feat = featureMap.get(getFeatureIndex(f));
             if (feat != null) {
                 feats.add(feat);
             }

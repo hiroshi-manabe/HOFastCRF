@@ -57,7 +57,7 @@ public class LogliComputer implements Schedulable {
      */
     public Object compute(int taskID) {
         Loglikelihood res = new Loglikelihood(lambda.length);
-        DataSequence seq = (DataSequence) trainData.get(taskID);
+        DataSequence seq = trainData.get(taskID);
         
         addFeatureScores(seq, res);
         double[][] logAlpha = computeLogAlpha(seq);

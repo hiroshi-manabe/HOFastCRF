@@ -54,7 +54,7 @@ public class Viterbi implements Schedulable {
      * @return The updated sequence
      */
     public Object compute(int taskID) {
-        DataSequence seq = (DataSequence) data.get(taskID);
+        DataSequence seq = data.get(taskID);
         double maxScore[][] = new double[seq.length() + 1][featureGen.forwardStateMap.size()];
         String trace[][] = new String[seq.length()][featureGen.forwardStateMap.size()];
 

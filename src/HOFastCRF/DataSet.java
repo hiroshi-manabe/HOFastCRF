@@ -34,7 +34,7 @@ public class DataSet {
      * Construct a dataset from a list of data sequences.
      * @param trs List of data sequences
      */
-    public DataSet(ArrayList<DataSequence> trs) {
+    public DataSet(List<DataSequence> trs) {
         trainSeqs = trs;
     }
 
