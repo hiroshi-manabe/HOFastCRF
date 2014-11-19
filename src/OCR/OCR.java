@@ -21,7 +21,7 @@ package OCR;
 
 import java.io.*;
 import java.util.*;
-import HOCRF.*;
+import HOFastCRF.*;
 import OCR.Features.*;
 
 /**
@@ -31,7 +31,7 @@ import OCR.Features.*;
 public class OCR {
 
     int trainFold = 0;
-    HighOrderCRF highOrderCrfModel; // High-order CRF model
+    HighOrderFastCRF highOrderCrfModel; // High-order CRF model
     FeatureGenerator featureGen; // Feature generator
     LabelMap labelmap = new LabelMap(); // Label map
     String configFile; // Configuration filename
@@ -44,9 +44,9 @@ public class OCR {
     public DataSet readTagged(String filename, int trainFold, boolean isTraining) throws Exception {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
-        ArrayList td = new ArrayList();
-        ArrayList<CharDetails> inps = new ArrayList<CharDetails>();
-        ArrayList<String> labels = new ArrayList<String>();
+        List td = new ArrayList();
+        List<CharDetails> inps = new ArrayList<CharDetails>();
+        List<String> labels = new ArrayList<String>();
         String line;
 
         while ((line = in.readLine()) != null) {
@@ -76,7 +76,7 @@ public class OCR {
                 }
 
                 if (nextID == -1 && labels.size() > 0) {
-                    td.add(new DataSequence(labelmap.mapArrayList(labels), inps.toArray(), labelmap));
+                    td.add(new DataSequence(labelmap.mapList(labels), inps.toArray(), labelmap));
                     inps = new ArrayList<CharDetails>();
                     labels = new ArrayList<String>();
                 }
@@ -89,7 +89,7 @@ public class OCR {
     
     public void createFeatureGenerator() throws Exception {
     	// Add feature types
-        ArrayList<FeatureType> fts = new ArrayList<FeatureType>();
+        List<FeatureType> fts = new ArrayList<FeatureType>();
         
         fts.add(new Pixel());
         fts.add(new FirstOrderTransition());
@@ -122,7 +122,7 @@ public class OCR {
         featureGen.write("learntModels/fold" + trainFold + "/features");
 
         // Train and save model
-        highOrderCrfModel = new HighOrderCRF(featureGen);
+        highOrderCrfModel = new HighOrderFastCRF(featureGen);
         highOrderCrfModel.train(trainData.getSeqList());
         highOrderCrfModel.write("learntModels/fold" + trainFold + "/crf");
     }
@@ -132,7 +132,7 @@ public class OCR {
         labelmap.read("learntModels/fold" + trainFold + "/labelmap");
         createFeatureGenerator();
         featureGen.read("learntModels/fold" + trainFold + "/features");
-        highOrderCrfModel = new HighOrderCRF(featureGen);
+        highOrderCrfModel = new HighOrderFastCRF(featureGen);
         highOrderCrfModel.read("learntModels/fold" + trainFold + "/crf");
 
         // Run Viterbi algorithm

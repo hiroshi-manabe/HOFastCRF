@@ -20,7 +20,7 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 package OCR.Features;
 
 import java.util.*;
-import HOCRF.*;
+import HOFastCRF.*;
 
 /**
  * Fifth order transition features
@@ -28,8 +28,8 @@ import HOCRF.*;
  */
 public class FifthOrderTransition extends FeatureType {
 
-    public ArrayList<String> generateObsAt(DataSequence seq, int pos) {
-        ArrayList<String> obs = new ArrayList<String>();
+    public List<String> generateObsAt(DataSequence seq, int pos) {
+        List<String> obs = new ArrayList<String>();
         if (pos >= 5) {
             obs.add("5E.");
         }

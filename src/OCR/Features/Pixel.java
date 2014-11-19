@@ -20,7 +20,7 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 package OCR.Features;
 
 import java.util.*;
-import HOCRF.*;
+import HOFastCRF.*;
 import OCR.*;
 
 /**
@@ -29,8 +29,8 @@ import OCR.*;
  */
 public class Pixel extends FeatureType {
     
-    public ArrayList<String> generateObsAt(DataSequence seq, int pos) {
-        ArrayList<String> obs = new ArrayList<String>();
+    public List<String> generateObsAt(DataSequence seq, int pos) {
+        List<String> obs = new ArrayList<String>();
         CharDetails cd = (CharDetails) seq.x(pos);
         for (int r = 0; r < CharDetails.ROWS; r++) {
             for (int c = 0; c < CharDetails.COLS; c++) {
