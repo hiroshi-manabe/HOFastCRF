@@ -32,7 +32,7 @@ public class OCR {
 
     int trainFold = 0;
     HighOrderFastCRF highOrderCrfModel; // High-order CRF model
-    FeatureGenerator featureGen; // Feature generator
+    OCRFeatureTemplateGenerator featureGen; // Feature generator
     LabelMap labelmap = new LabelMap(); // Label map
     String configFile; // Configuration filename
 
@@ -44,7 +44,7 @@ public class OCR {
     public DataSet readTagged(String filename, int trainFold, boolean isTraining) throws Exception {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
-        List td = new ArrayList();
+        List<DataSequence> td = new ArrayList<DataSequence>();
         List<CharDetails> inps = new ArrayList<CharDetails>();
         List<String> labels = new ArrayList<String>();
         String line;
@@ -87,24 +87,6 @@ public class OCR {
         return new DataSet(td);
     }
     
-    public void createFeatureGenerator() throws Exception {
-    	// Add feature types
-        List<FeatureType> fts = new ArrayList<FeatureType>();
-        
-        fts.add(new Pixel());
-        fts.add(new FirstOrderTransition());
-        fts.add(new SecondOrderTransition());
-        //fts.add(new ThirdOrderTransition());
-        //fts.add(new FourthOrderTransition());
-        //fts.add(new FifthOrderTransition());
-        
-        // Process parameters
-        Params params = new Params(configFile, labelmap.size());
-        
-        // Initialize feature generator
-        featureGen = new FeatureGenerator(fts, params);
-    }
-
     public void train() throws Exception {
     
         // Set training file name and create output directory
@@ -116,11 +98,6 @@ public class OCR {
         DataSet trainData = readTagged(trainFilename, trainFold, true);
         labelmap.write("learntModels/fold" + trainFold + "/labelmap");
         
-        // Create and save feature generator
-        createFeatureGenerator();
-        featureGen.initialize(trainData.getSeqList());
-        featureGen.write("learntModels/fold" + trainFold + "/features");
-
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF(featureGen);
         highOrderCrfModel.train(trainData.getSeqList());

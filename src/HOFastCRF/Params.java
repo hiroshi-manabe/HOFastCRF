@@ -41,7 +41,7 @@ public class Params {
      * @param nl Number of labels
      */
     public Params(String filename, int nl) throws IOException {
-    	Properties options = new Properties();
+        Properties options = new Properties();
         options.load(new FileInputStream(filename));
         String value = null;
         if ((value = options.getProperty("maxIters")) != null) {

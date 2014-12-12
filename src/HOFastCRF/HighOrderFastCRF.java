@@ -1,73 +1,84 @@
-/*
-Copyright (C) 2012 Nguyen Viet Cuong, Ye Nan, Sumit Bhagwani
-
-This file is part of HOSemiCRF.
-
-HOSemiCRF is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-HOSemiCRF is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
-*/
-
 package HOFastCRF;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import edu.stanford.nlp.optimization.QNMinimizer;
 import Parallel.Scheduler;
 
 /**
- * High-order CRF class
- * @author Nguyen Viet Cuong
+ * High-order Fast CRF class
+ * @author Hiroshi Manabe
  */
 public class HighOrderFastCRF {
 
-    FeatureGenerator featureGen; // Feature generator
+    FeatureTemplateGenerator featureTemplateGenerator; // Feature template generator
+    List<RawDataSequence> dataSequenceList;  // List of the processed data sequence
     double[] lambda; // Feature weight vector
-	
+    
     /**
      * Construct and initialize a high-order CRF from feature generator.
-     * @param fgen Feature generator
+     * @param featureTemplateGenerator Feature generator
      */
-    public HighOrderFastCRF(FeatureGenerator fgen) {
-        featureGen = fgen;
-        lambda = new double[featureGen.featureMap.size()];
-        Arrays.fill(lambda, 0.0);
+    public HighOrderFastCRF(FeatureTemplateGenerator featureTemplateGenerator) {
+        this.featureTemplateGenerator = featureTemplateGenerator;
     }
-
+    
     /**
      * Train a high-order CRF from data.
      * @param data Training data
      */
-    public void train(List<DataSequence> data) {
+    public List<Feature> train(List<RawDataSequence> data) {
+        RawDataSet rawDataSet = new RawDataSet(data);
+        Map<String, Integer> labelMap = rawDataSet.generateLabelMap();
+        DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap);
+        Map<Feature, Integer> featureCountMap = dataSet.generateFeatureCountMap();
+        Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap = new HashMap<FeatureTemplate, List<Feature>>();
+        
+        List<Feature> featureList = new ArrayList<Feature>();
+        int[] featureCountArray = new int[featureCountMap.size()];
+        
+        int count = 0;
+        for (Map.Entry<Feature, Integer> entry : featureCountMap.entrySet()) {
+            Feature f = entry.getKey();
+            featureList.add(f);
+            featureCountArray[count] = entry.getValue();
+            
+            FeatureTemplate ft = f.createFeatureTemplate();
+            if (!featureTemplateToFeatureMap.containsKey(ft)) {
+                featureTemplateToFeatureMap.put(ft, new ArrayList<Feature>());
+            }
+            featureTemplateToFeatureMap.get(ft).add(f);
+            
+            ++count;
+        }
+        
+        List<PatternSetSequence> patternSetSequence = dataSet.generatePatternSetSequenceList(featureTemplateToFeatureMap);
+        
         QNMinimizer qn = new QNMinimizer();
-        Function df = new Function(featureGen, data);
-        lambda = qn.minimize(df, featureGen.params.epsForConvergence, lambda, featureGen.params.maxIters);
+        Function df = new Function(featureTemplateGenerator, data);
+        lambda = qn.minimize(df, featureTemplateGenerator.params.epsForConvergence, lambda, featureTemplateGenerator.params.maxIters);
     }
 
     /**
      * Run Viterbi algorithm on testing data.
      * @param data Testing data
      */
-    public void runViterbi(List<DataSequence> data) throws Exception {
-        Viterbi tester = new Viterbi(featureGen, lambda, data);
-        Scheduler sch = new Scheduler(tester, featureGen.params.numthreads, Scheduler.DYNAMIC_NEXT_AVAILABLE);
+    public void runViterbi(List<RawDataSequence> data) throws Exception {
+        Viterbi tester = new Viterbi(featureTemplateGenerator, lambda, data);
+        Scheduler sch = new Scheduler(tester, featureTemplateGenerator.params.numthreads, Scheduler.DYNAMIC_NEXT_AVAILABLE);
         sch.run();
     }
-	
+    
     /**
      * Write the high-order CRF to a file.
      * @param filename Name of the output file

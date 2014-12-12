@@ -33,7 +33,7 @@ import Parallel.Schedulable;
 public class Viterbi implements Schedulable {
 
     int curID; // Current task ID (for parallelization)
-    FeatureGenerator featureGen; // Feature generator
+    FeatureReader featureGen; // Feature generator
     double[] lambda; // Lambda vector
     List<DataSequence> data; // List of testing sequences
     final int BASE = 1; // Base of the logAlpha array
@@ -44,7 +44,7 @@ public class Viterbi implements Schedulable {
      * @param lambda Lambda vector
      * @param data Testing data
      */
-    public Viterbi(FeatureGenerator featureGen, double[] lambda, List<DataSequence> data) {
+    public Viterbi(FeatureReader featureGen, double[] lambda, List<DataSequence> data) {
         curID = -1;
         this.featureGen = featureGen;
         this.lambda = lambda;

@@ -1,43 +1,67 @@
-/*
-Copyright (C) 2012 Nguyen Viet Cuong, Ye Nan, Sumit Bhagwani
-
-This file is part of HOSemiCRF.
-
-HOSemiCRF is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-HOSemiCRF is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
-*/
-
 package HOFastCRF;
 
 /**
  * Feature class
- * @author Nguyen Viet Cuong
+ * @author Hiroshi Manabe
  */
 public class Feature {
 
-    String obs; // The observation part of the feature
-    String pat; // The pattern of the feature
-    double value; // Value of the feature
+    String obs;
+    LabelSequence pat;
+    double expWeight;
+    double expectation;
 
-    /**
-     * Construct a new feature from observation, pattern, and value.
-     * @param obs Observation of the feature
-     * @param pat Label pattern of the feature
-     * @param value Value of the feature
-     */
-    public Feature(String obs, String pat, double value) {
+    public Feature(String obs, LabelSequence pat) {
         this.obs = obs;
         this.pat = pat;
-        this.value = value;
+        this.expWeight = 0.0;
+        this.expectation = 0.0;
     }
+    
+    public synchronized void addExpectation(double expectation) {
+        this.expectation += expectation;
+    }
+    
+    public double getExpectation() {
+        return expectation;
+    }
+    
+    public void setWeight(double weight) {
+        expWeight = Math.exp(weight);
+    }
+    
+    public double getExpWeight() {
+        return expWeight;
+    }
+    
+    public void reset() {
+        expWeight = 0.0;
+        expectation = 0.0;
+    }
+    
+    public LabelSequence getLabelSequence() {
+        return pat;
+    }
+    
+    public FeatureTemplate createFeatureTemplate() {
+        return new FeatureTemplate(obs, pat.getOrder());
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Feature that = (Feature)obj;
+        return this.obs.equals(that.obs) && this.pat.equals(that.pat);
+    }
+    
+    @Override
+    public int hashCode() {
+        return obs.hashCode() + pat.hashCode();
+    }
+    
 }

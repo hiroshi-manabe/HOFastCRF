@@ -86,7 +86,7 @@ public class LabelMap {
         }
         return result;
     }
-	
+    
     /**
      * Map label indices into label strings.
      * @param labels Label array

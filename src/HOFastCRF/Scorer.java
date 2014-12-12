@@ -161,7 +161,7 @@ public class Scorer {
         System.out.println(table);
         return ratio(2 * nTotCorrect, nTotPredicted + nTotPhrase);
     }
-	
+    
     /**
      * Print the scores based on the correct tokens.
      * @return F1 score
@@ -303,7 +303,7 @@ public class Scorer {
             labelht.put(labs.get(i), i);
         }
     }
-	
+    
     private String strRatio(double a, double b) {
         double r = 0;
         if (b != 0) {
@@ -319,7 +319,7 @@ public class Scorer {
         }
         return 0;
     }
-	
+    
     private double sum(double[] ar) {
         double s = 0;
         for (double d : ar) {
@@ -327,7 +327,7 @@ public class Scorer {
         }
         return s;
     }
-	
+    
     private void removeSuffix(String[][] arr) {
         for (int i = 0; i < arr.length; i++) {
             for (int j = 0; j < arr[i].length; j++) {
@@ -357,7 +357,7 @@ class DisplayTable {
         }
         rows.add(row);
     }
-	
+    
     String format(String s, int w, String align) {
         int n = w - s.length();
         if (align == "l") {//align to the left

@@ -19,26 +19,31 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package OCR.Features;
 
-import java.util.*;
-import HOFastCRF.*;
-import OCR.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import HOFastCRF.FeatureTemplate;
+import HOFastCRF.FeatureTemplateGenerator;
+import OCR.CharDetails;
 
 /**
- * Pixel features
+ * Generates OCR features
  * @author Nguyen Viet Cuong
  */
-public class Pixel extends FeatureType {
+public class OCRFeatureTemplateGenerator extends FeatureTemplateGenerator {
     
-    public List<String> generateObsAt(DataSequence seq, int pos) {
-        List<String> obs = new ArrayList<String>();
-        CharDetails cd = (CharDetails) seq.x(pos);
+	public List<FeatureTemplate> generateFeatureTemplatesAt(List<Object> rawObservationList, int pos) {
+        List<FeatureTemplate> obs = new ArrayList<FeatureTemplate>();
+        CharDetails cd = (CharDetails)rawObservationList.get(pos);
         for (int r = 0; r < CharDetails.ROWS; r++) {
             for (int c = 0; c < CharDetails.COLS; c++) {
                 if (cd.getPixels(r, c) != 0) {
-                    obs.add(r + "." + c);
+                    obs.add(new FeatureTemplate(r + "." + c, 1));
                 }
             }
         }
+        obs.add(new FeatureTemplate("DUMMY", 2));
+        obs.add(new FeatureTemplate("DUMMY", 3));
         return obs;
     }
 

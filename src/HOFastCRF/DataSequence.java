@@ -1,113 +1,175 @@
 /*
-Copyright (C) 2012 Nguyen Viet Cuong, Ye Nan, Sumit Bhagwani
-
-This file is part of HOSemiCRF.
-
-HOSemiCRF is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-HOSemiCRF is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
+Copyright (C) 2014 Hiroshi Manabe
 */
 
 package HOFastCRF;
 
-import java.io.BufferedWriter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Class for a data sequence
- * @author Nguyen Viet Cuong
+ * @author Hiroshi Manabe
  */
 public class DataSequence {
-	
-    Object[] inputs; // Observation array
-    int[] labels; // Label array
-    List<List<List<Integer>>> features; // Map from [pos,patID] to list of feature IDs
-    LabelMap labelmap; // Map from label strings to their IDs
+    
+    List<List<FeatureTemplate>> featureTemplateListList;
+    int[] labels;
+    boolean hasValidLabels;
     
     /**
-     * Construct a data sequence from a label map, labels and observations with default segmentation.
-     * @param ls Label array
-     * @param inps Observation array
-     * @param labelm Label map
+     * Constructs a data sequence.
+     * @param featureTemplateListList
+     * @param labels
      */
-    public DataSequence(int[] ls, Object[] inps, LabelMap labelm) {
-        labels = ls;
-        inputs = inps;
-        labelmap = labelm;
+    public DataSequence(List<List<FeatureTemplate>> featureTemplateListList, int[] labels, boolean hasValidLabels) {
+        this.labels = labels;
+        this.featureTemplateListList = featureTemplateListList;
+        this.hasValidLabels = hasValidLabels;
     }
 
     /**
-     * Return length of the current data sequence.
-     * @return Length of the current sequence
+     * Returns the length of the sequence. 
+     * @return length
      */
     public int length() {
-        return labels.length;
+        return featureTemplateListList.size();
     }
 
     /**
-     * Return label at a position.
-     * @param pos Input position
-     * @return Label at the input position
+     * @return if the labels match the label sequence or not
      */
-    public int y(int pos) {
-        return labels[pos];
-    }
-
-    /**
-     * Return observation at a position.
-     * @param pos Input position
-     * @return Observation at the input position
-     */
-    public Object x(int pos) {
-        if (pos < 0 || pos >= inputs.length) {
-            return "";
+    public boolean matches(int[] labels, int pos) {
+        if (pos < labels.length || pos >= this.labels.length) {
+            return false;
         }
-        return inputs[pos];
+        for (int i = 0; i < labels.length; ++i) {
+            if (this.labels[pos - i] != labels[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
-     * Set the label at an input position.
-     * @param pos Input position
-     * @param newY New label to be set at the input position
+     * @return reversed label sequence starting from the position
      */
-    public void set_y(int pos, int newY) {
-        labels[pos] = newY;
+    public LabelSequence getLabelSequence(int pos, int length) {
+        if (!hasValidLabels) {
+            return new LabelSequence(new int[0]);
+        }
+        if (pos < labels.length - 1 || pos >= this.labels.length) {
+            return new LabelSequence(new int[0]);
+        }
+        int[] labels = new int[length];
+        for (int i = 0; i < length; ++i) {
+            labels[i] = this.labels[pos - i];
+        }
+        return new LabelSequence(labels);
     }
     
-    /**
-     * Return the label map of this sequence.
-     * @return The label map.
-     */
-    public LabelMap getLabelMap() {
-        return labelmap;
-    }
-	
-    /**
-     * Return the list of features at a position and a label pattern.
-     * @param pos Input position
-     * @param patID Pattern ID
-     * @return List of features
-     */
-    public List<Integer> getFeatures(int pos, int patID) {
-        return features.get(pos).get(patID);
-    }
-	
-    /**
-     * Write a data sequence to a buffered writer.
-     * @param bw Buffered writer
-     */
-    public void writeToBuffer(BufferedWriter bw) throws Exception {
-        for (int i = 0; i < labels.length; i++) {                
-            bw.write(x(i) + " " + labelmap.revMap(labels[i]) + "\n");
+    public void accumulateFeatureCountsToMap(Map<Feature, Integer> arg) {
+        if (!hasValidLabels) {
+            return;
         }
+        for (int pos = 0; pos < labels.length; ++pos) {
+            for (FeatureTemplate featureTemplate : featureTemplateListList.get(pos)) {
+                if (pos < featureTemplate.getOrder() - 1) {
+                    continue;
+                }
+                Feature f = new Feature(featureTemplate.getObservation(), getLabelSequence(pos, featureTemplate.getOrder()));
+                if (!arg.containsKey(f)) {
+                    arg.put(f, 0);
+                }
+                arg.put(f, arg.get(f) + 1);
+            }
+        }
+    }
+    
+    public PatternSetSequence generatePatternSetSequence(Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap) {
+        List<SortedMap<LabelSequence, Pattern>> mapList = new ArrayList<SortedMap<LabelSequence, Pattern>>();
+        for (int pos = 0; pos < this.length(); ++pos) {
+            List<FeatureTemplate> curFeatureTemplateList = featureTemplateListList.get(pos);
+            mapList.add(new TreeMap<LabelSequence, Pattern>());
+            SortedMap<LabelSequence, Pattern> curMap = mapList.get(pos);
+            Pattern emptyPattern = new Pattern();
+            LabelSequence emptyLabelSequence = LabelSequence.createEmptyLabelSequence(); 
+            curMap.put(emptyLabelSequence, emptyPattern);
+            
+            for (FeatureTemplate template : curFeatureTemplateList) {
+                if (template.getOrder() - 1 < pos) {
+                    continue;
+                }
+                List<Feature> featureList = featureTemplateToFeatureMap.get(template);
+                for (Feature feature : featureList) {
+                    LabelSequence seq = feature.getLabelSequence();
+                    if (!curMap.containsKey(seq)) {
+                        curMap.put(seq, new Pattern());
+                    }
+                    Pattern pat = curMap.get(seq);
+                    pat.featureList.add(feature);
+                    if (pos > 0) {
+                        for (int i = 0; i < seq.getOrder(); ++i) {
+                            LabelSequence prefix = seq.createPrefix();
+                            SortedMap<LabelSequence, Pattern> prevMap = mapList.get(pos - i);  
+                            if (!prevMap.containsKey(prefix)) {
+                                prevMap.put(prefix, new Pattern());
+                            }
+                            curMap.get(seq).prevPattern = prevMap.get(prefix);
+                            seq = prefix;
+                            curMap = prevMap;
+                        }
+                    }
+                }
+            }
+            
+            List<Pattern> longestSuffixCandidateList = new ArrayList<Pattern>();
+            for (int i = 0; i < Config.MAX_ORDER; ++i) {
+                longestSuffixCandidateList.add(emptyPattern);
+            }
+            
+            if (pos == 0) {
+                for (Map.Entry<LabelSequence, Pattern> entry : curMap.entrySet()) {
+                    entry.getValue().prevPattern = Pattern.DUMMY_PATTERN;
+                }
+                
+            } else {
+                LabelSequence prevLabelSequence = emptyLabelSequence;
+                for (Map.Entry<LabelSequence, Pattern> entry : curMap.entrySet()) {
+                    LabelSequence curLabelSequence = entry.getKey();
+                    Pattern curPattern = entry.getValue();
+                    if (curLabelSequence.equals(emptyLabelSequence)) {
+                        continue;
+                    }
+                    int diffPos = curLabelSequence.getDifferencePosition(prevLabelSequence);
+                    curPattern.longestSuffixPattern = longestSuffixCandidateList.get(diffPos);
+                    for (int i = diffPos; i < curLabelSequence.getOrder(); ++i) {
+                        longestSuffixCandidateList.set(i, longestSuffixCandidateList.get(diffPos));
+                    }
+                    longestSuffixCandidateList.set(curLabelSequence.getOrder(), curPattern);
+                }
+            }
+        }
+        List<PatternSet> patternSetList = new ArrayList<PatternSet>();
+        for (int pos = 0; pos < length(); ++pos) {
+            List<Pattern> patternList = new ArrayList<Pattern>();
+            patternList.addAll(mapList.get(pos).values());
+            Pattern longestMatchPattern = patternList.get(0);
+            if (hasValidLabels && pos > 1) {
+                SortedMap<LabelSequence, Pattern> prevMap = mapList.get(pos);
+                for (int length = Math.min(Config.MAX_ORDER, pos + 1); length > 0; --length) {
+                    LabelSequence key = getLabelSequence(pos, length);
+                    if (prevMap.containsKey(key)) {
+                        longestMatchPattern = prevMap.get(key);
+                        break;
+                    }
+                }
+            }
+            patternSetList.add(new PatternSet(patternList, longestMatchPattern));
+        }
+        return new PatternSetSequence(patternSetList);
     }
 }
