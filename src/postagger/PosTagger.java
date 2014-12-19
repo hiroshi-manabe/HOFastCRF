@@ -32,7 +32,7 @@ public class PosTagger {
                 labelList = new ArrayList<String>();
                 continue;
             }
-            String[] elements = line.split("\t");
+            String[] elements = line.split("\t", -1);
             if (elements.length < 2) {
                 continue;
             }

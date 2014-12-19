@@ -29,6 +29,9 @@ public class PrefixSuffixFeatureTemplateGenerator extends
         for (int affixLen = minLength; affixLen <= maxLength; ++affixLen) {
             int startPos = isPrefix ? 0 : (strLen - affixLen < 0 ? 0 : strLen - affixLen);
             int endPos = !isPrefix ? strLen : (affixLen > strLen ? strLen : affixLen);
+            if (startPos >= endPos) {
+                continue;
+            }
             String affix = curString.substring(startPos, endPos);
             templateList.add(new FeatureTemplate(tag + affixLen + "_" + affix, 1));
         }
