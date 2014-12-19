@@ -1,4 +1,4 @@
-package HOFastCRF;
+package hofastcrf;
 
 public class FeatureTemplate {
     

@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package HOFastCRF;
+package hofastcrf;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;

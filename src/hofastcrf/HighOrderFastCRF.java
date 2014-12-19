@@ -1,35 +1,31 @@
-package HOFastCRF;
+package hofastcrf;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import edu.stanford.nlp.optimization.QNMinimizer;
-import Parallel.Scheduler;
 
 /**
  * High-order Fast CRF class
  * @author Hiroshi Manabe
  */
-public class HighOrderFastCRF {
+public class HighOrderFastCRF<T> {
 
-    FeatureTemplateGenerator featureTemplateGenerator; // Feature template generator
-    List<RawDataSequence> dataSequenceList;  // List of the processed data sequence
+    FeatureTemplateGenerator<T> featureTemplateGenerator; // Feature template generator
+    List<RawDataSequence<T>> dataSequenceList;  // List of the processed data sequence
     double[] lambda; // Feature weight vector
     
     /**
      * Construct and initialize a high-order CRF from feature generator.
      * @param featureTemplateGenerator Feature generator
      */
-    public HighOrderFastCRF(FeatureTemplateGenerator featureTemplateGenerator) {
+    public HighOrderFastCRF(FeatureTemplateGenerator<T> featureTemplateGenerator) {
         this.featureTemplateGenerator = featureTemplateGenerator;
     }
     
@@ -37,10 +33,10 @@ public class HighOrderFastCRF {
      * Train a high-order CRF from data.
      * @param data Training data
      */
-    public List<Feature> train(List<RawDataSequence> data) {
-        RawDataSet rawDataSet = new RawDataSet(data);
+    public List<Feature> train(RawDataSet<T> rawDataSet, int maxOrder, int maxIters, int concurrency,
+            double invSigmaSquare, double epsForConvergence) {
         Map<String, Integer> labelMap = rawDataSet.generateLabelMap();
-        DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap);
+        DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap, maxOrder);
         Map<Feature, Integer> featureCountMap = dataSet.generateFeatureCountMap();
         Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap = new HashMap<FeatureTemplate, List<Feature>>();
         
@@ -62,21 +58,20 @@ public class HighOrderFastCRF {
             ++count;
         }
         
-        List<PatternSetSequence> patternSetSequence = dataSet.generatePatternSetSequenceList(featureTemplateToFeatureMap);
+        List<PatternSetSequence> patternSetSequenceList = dataSet.generatePatternSetSequenceList(featureTemplateToFeatureMap);
         
         QNMinimizer qn = new QNMinimizer();
-        Function df = new Function(featureTemplateGenerator, data);
-        lambda = qn.minimize(df, featureTemplateGenerator.params.epsForConvergence, lambda, featureTemplateGenerator.params.maxIters);
+        Function df = new Function(patternSetSequenceList, featureList, featureCountArray, concurrency, invSigmaSquare);
+        lambda = new double[featureList.size()];
+        lambda = qn.minimize(df, epsForConvergence, lambda, maxIters);
+        return featureList;
     }
 
     /**
      * Run Viterbi algorithm on testing data.
      * @param data Testing data
      */
-    public void runViterbi(List<RawDataSequence> data) throws Exception {
-        Viterbi tester = new Viterbi(featureTemplateGenerator, lambda, data);
-        Scheduler sch = new Scheduler(tester, featureTemplateGenerator.params.numthreads, Scheduler.DYNAMIC_NEXT_AVAILABLE);
-        sch.run();
+    public void runViterbi(List<RawDataSequence<T>> data) throws Exception {
     }
     
     /**

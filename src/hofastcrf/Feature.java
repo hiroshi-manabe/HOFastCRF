@@ -1,4 +1,4 @@
-package HOFastCRF;
+package hofastcrf;
 
 /**
  * Feature class
@@ -26,17 +26,13 @@ public class Feature {
         return expectation;
     }
     
-    public void setWeight(double weight) {
+    public void reset(double weight) {
         expWeight = Math.exp(weight);
+        expectation = 0.0;
     }
     
     public double getExpWeight() {
         return expWeight;
-    }
-    
-    public void reset() {
-        expWeight = 0.0;
-        expectation = 0.0;
     }
     
     public LabelSequence getLabelSequence() {

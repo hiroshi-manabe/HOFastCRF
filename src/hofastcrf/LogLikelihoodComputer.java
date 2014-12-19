@@ -1,35 +1,26 @@
-package HOFastCRF;
+package hofastcrf;
 
-import java.util.Arrays;
 import java.util.List;
 
 import Parallel.Schedulable;
 
-public class LogliComputer implements Schedulable {
+public class LogLikelihoodComputer implements Schedulable {
 
     int curID;
     List<PatternSetSequence> patternSetSequence;
-    double[] lambda;
-    Loglikelihood logli;
+    LogLikelihood logLikelihood;
     
-    public LogliComputer(double[] lambdaValues, List<PatternSetSequence> patternSetSequence, Loglikelihood loglh) {
+    public LogLikelihoodComputer(List<PatternSetSequence> patternSetSequence, LogLikelihood logLikelihood) {
         curID = -1;
         this.patternSetSequence = patternSetSequence;
-        lambda = lambdaValues;
-        logli = loglh;
+        this.logLikelihood = logLikelihood;
     }
 
     public Object compute(int taskID) {
         PatternSetSequence seq = patternSetSequence.get(taskID);
-        
-        double[] expectation = computeExpectation(seq);
-
-        for (int k = 0; k < lambda.length; k++) {
-            res.derivatives[k] -= expectation[k];
-        }
-        res.logli -= logZx;
-
-        return res;
+        seq.updateFeatureExpectation();
+        double ll = seq.calcLogLikelihood();
+        return new LogLikelihood(ll);
     }
     
     /**
@@ -56,11 +47,8 @@ public class LogliComputer implements Schedulable {
      * @param partialResult Partition function and expected feature scores
      */
     public synchronized void update(Object partialResult) {
-        Loglikelihood res = (Loglikelihood) partialResult;
-        logli.logli += res.logli;
-        for (int i = 0; i < lambda.length; i++) {
-            logli.derivatives[i] += res.derivatives[i];
-        }
+        LogLikelihood res = (LogLikelihood) partialResult;
+        this.logLikelihood.addLogLikelihood(res.getLogLikelihood());
     }
     
 }

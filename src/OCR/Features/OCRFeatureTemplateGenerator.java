@@ -19,22 +19,23 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package OCR.Features;
 
+import hofastcrf.FeatureTemplate;
+import hofastcrf.FeatureTemplateGenerator;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import HOFastCRF.FeatureTemplate;
-import HOFastCRF.FeatureTemplateGenerator;
 import OCR.CharDetails;
 
 /**
  * Generates OCR features
  * @author Nguyen Viet Cuong
  */
-public class OCRFeatureTemplateGenerator extends FeatureTemplateGenerator {
+public class OCRFeatureTemplateGenerator extends FeatureTemplateGenerator<CharDetails> {
     
-	public List<FeatureTemplate> generateFeatureTemplatesAt(List<Object> rawObservationList, int pos) {
+	public List<FeatureTemplate> generateFeatureTemplatesAt(List<CharDetails> rawObservationList, int pos) {
         List<FeatureTemplate> obs = new ArrayList<FeatureTemplate>();
-        CharDetails cd = (CharDetails)rawObservationList.get(pos);
+        CharDetails cd = rawObservationList.get(pos);
         for (int r = 0; r < CharDetails.ROWS; r++) {
             for (int c = 0; c < CharDetails.COLS; c++) {
                 if (cd.getPixels(r, c) != 0) {

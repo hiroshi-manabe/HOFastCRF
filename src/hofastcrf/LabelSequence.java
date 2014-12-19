@@ -1,4 +1,4 @@
-package HOFastCRF;
+package hofastcrf;
 
 import java.util.Arrays;
 

@@ -1,4 +1,4 @@
-package HOFastCRF;
+package hofastcrf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,9 +8,9 @@ import java.util.Map;
  * Class for a raw data sequence
  * @author Hiroshi Manabe
  */
-public class RawDataSequence {
+public class RawDataSequence<T> {
     
-    List<Object> rawObservationList;
+    List<T> rawObservationList;
     List<String> rawLabelList;
     boolean hasValidLabels;
     
@@ -20,13 +20,13 @@ public class RawDataSequence {
      * @param inps Observation array
      * @param labelm Label map
      */
-    public RawDataSequence(List<Object> rawObservationList, List<String> rawLabelList, boolean hasValidLabels) {
+    public RawDataSequence(List<T> rawObservationList, List<String> rawLabelList, boolean hasValidLabels) {
         this.rawObservationList = rawObservationList;
         this.rawLabelList = rawLabelList;
         this.hasValidLabels = hasValidLabels;
     }
     
-    public List<Object> getRawObservationList() {
+    public List<T> getRawObservationList() {
         return rawObservationList;
     }
     
@@ -34,13 +34,13 @@ public class RawDataSequence {
         return rawLabelList;
     }
     
-    public DataSequence convertToDataSequence(FeatureTemplateGenerator featureTemplateGenerator, Map<String, Integer> labelMap) {
+    public DataSequence convertToDataSequence(FeatureTemplateGenerator<T> featureTemplateGenerator, Map<String, Integer> labelMap, int maxOrder) {
         List<List<FeatureTemplate>> featureTemplateListList = new ArrayList<List<FeatureTemplate>>();
         int[] labels = new int[rawObservationList.size()];
         for (int pos = 0; pos < rawObservationList.size(); ++pos) {
             featureTemplateListList.add(featureTemplateGenerator.generateFeatureTemplatesAt(rawObservationList, pos));
             labels[pos] = hasValidLabels ? labelMap.get(rawLabelList.get(pos)) : 0;
         }
-        return new DataSequence(featureTemplateListList, labels, hasValidLabels);
+        return new DataSequence(featureTemplateListList, labels, maxOrder, hasValidLabels);
     }
 }
