@@ -58,8 +58,8 @@ public class PosTagger {
         gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(0, 0, 2));
         gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(-1, -1, 3));
         gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(+1, +1, 1));
-        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(true, 1, 3));
-        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(false, 1, 3));
+        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(true, 1, 2));
+        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(false, 1, 2));
         
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF<String>(gen);

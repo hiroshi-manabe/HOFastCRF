@@ -1,8 +1,11 @@
 package hofastcrf;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +37,7 @@ public class HighOrderFastCRF<T> {
      * @param data Training data
      */
     public List<Feature> train(RawDataSet<T> rawDataSet, int maxOrder, int maxIters, int concurrency,
-            double invSigmaSquare, double epsForConvergence) {
+            double inverseSigmaSquared, double epsilonForConvergence) {
         Map<String, Integer> labelMap = rawDataSet.generateLabelMap();
         DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap, maxOrder);
         Map<Feature, Integer> featureCountMap = dataSet.generateFeatureCountMap();
@@ -57,13 +60,14 @@ public class HighOrderFastCRF<T> {
             
             ++count;
         }
+        dumpFeatures(featureList, labelMap);
         
         List<PatternSetSequence> patternSetSequenceList = dataSet.generatePatternSetSequenceList(featureTemplateToFeatureMap);
         
         QNMinimizer qn = new QNMinimizer();
-        Function df = new Function(patternSetSequenceList, featureList, featureCountArray, concurrency, invSigmaSquare);
+        Function df = new Function(patternSetSequenceList, featureList, featureCountArray, concurrency, inverseSigmaSquared);
         lambda = new double[featureList.size()];
-        lambda = qn.minimize(df, epsForConvergence, lambda, maxIters);
+        lambda = qn.minimize(df, epsilonForConvergence, lambda, maxIters);
         return featureList;
     }
 
@@ -72,6 +76,27 @@ public class HighOrderFastCRF<T> {
      * @param data Testing data
      */
     public void runViterbi(List<RawDataSequence<T>> data) throws Exception {
+    }
+    
+    public void dumpFeatures(List<Feature> featureList, Map<String, Integer> labelMap) {
+        Map<Integer, String> reversedLabelMap = new HashMap<Integer, String>();
+        for (Map.Entry<String, Integer> entry : labelMap.entrySet()) {
+            reversedLabelMap.put(entry.getValue(), entry.getKey());
+        }
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("features.txt"));
+            for (Feature f : featureList) {
+                writer.write(f.obs);
+                for (int label : f.pat.labels) {
+                    writer.write("\t");
+                    writer.write(reversedLabelMap.get(label));
+                }
+                writer.write("\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     /**

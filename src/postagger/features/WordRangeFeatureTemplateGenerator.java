@@ -13,10 +13,10 @@ public class WordRangeFeatureTemplateGenerator extends
     private final int endPos;
     private final String tag;
     
-    public WordRangeFeatureTemplateGenerator(int maxOrder, int startPos, int endPos) {
-        this.maxOrder = maxOrder;
+    public WordRangeFeatureTemplateGenerator(int startPos, int endPos, int maxOrder) {
         this.startPos = startPos;
         this.endPos = endPos;
+        this.maxOrder = maxOrder;
         StringBuilder b = new StringBuilder("W");
         for (int i = startPos; i <= endPos; ++i) {
             b.append(String.format("%+d", i));

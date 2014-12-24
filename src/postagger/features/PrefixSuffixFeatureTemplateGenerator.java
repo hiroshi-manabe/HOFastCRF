@@ -27,11 +27,11 @@ public class PrefixSuffixFeatureTemplateGenerator extends
         String curString = rawObjectList.get(pos);
         int strLen = curString.length();
         for (int affixLen = minLength; affixLen <= maxLength; ++affixLen) {
-            int startPos = isPrefix ? 0 : (strLen - affixLen < 0 ? 0 : strLen - affixLen);
-            int endPos = !isPrefix ? strLen : (affixLen > strLen ? strLen : affixLen);
-            if (startPos >= endPos) {
+            if (affixLen > strLen) {
                 continue;
             }
+            int startPos = isPrefix ? 0 : strLen - affixLen;
+            int endPos = !isPrefix ? strLen : affixLen;
             String affix = curString.substring(startPos, endPos);
             templateList.add(new FeatureTemplate(tag + affixLen + "_" + affix, 1));
         }

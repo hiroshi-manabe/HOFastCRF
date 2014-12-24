@@ -47,23 +47,22 @@ public class PatternSet {
     void calcGamma() {
         for (int i = patternList.size() - 1; i >= 1; --i) {
             Pattern pattern = patternList.get(i);
-            pattern.gamma = pattern.alpha;
+            pattern.gamma += pattern.alpha;
             pattern.longestSuffixPattern.gamma += pattern.gamma;
         }
     }
     
     void setLastDelta() {
-        for (Pattern pattern : patternList) {
-            pattern.delta = 1.0;
-        }
-        patternList.get(0).delta = 0.0;
+        patternList.get(0).delta = 1.0;
     }
     
     void calcBeta() {
+        patternList.get(0).beta = patternList.get(0).delta;
         for (int i = 1; i < patternList.size(); ++i) {
             Pattern pattern = patternList.get(i);
-            pattern.beta += pattern.longestSuffixPattern.beta;
+            pattern.beta = pattern.delta + pattern.longestSuffixPattern.beta;
         }
+        patternList.get(0).beta = 0.0;
         scaleBeta();
     }
     
@@ -78,7 +77,7 @@ public class PatternSet {
         for (int i = patternList.size() - 1; i >= 1; --i) {
             Pattern pattern = patternList.get(i);
             // sigma
-            pattern.sigma = pattern.theta;
+            pattern.sigma += pattern.theta;
             pattern.longestSuffixPattern.sigma += pattern.sigma;
         }
     }
@@ -100,7 +99,7 @@ public class PatternSet {
     void scaleBeta() {
         double expScale = Math.pow(2.0, this.scale);
         for (Pattern pattern : patternList) {
-            pattern.beta *= expScale;
+            pattern.beta /= expScale;
         }
     }
     

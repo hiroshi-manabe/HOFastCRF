@@ -59,5 +59,4 @@ public class Feature {
     public int hashCode() {
         return obs.hashCode() + pat.hashCode();
     }
-    
 }

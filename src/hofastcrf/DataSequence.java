@@ -63,7 +63,7 @@ public class DataSequence {
         if (!hasValidLabels) {
             return new LabelSequence(new int[0]);
         }
-        if (pos < labels.length - 1 || pos >= this.labels.length) {
+        if (pos < length - 1) {
             return new LabelSequence(new int[0]);
         }
         int[] labels = new int[length];
@@ -108,11 +108,20 @@ public class DataSequence {
                 }
                 List<Feature> featureList = featureTemplateToFeatureMap.get(template);
                 for (Feature feature : featureList) {
-                    //FIXME
-                    if ((pos == 0 || pos == this.length() - 1) &&feature.getLabelSequence().labels[0] != 0) {
+                    LabelSequence seq = feature.getLabelSequence();
+                    //FIXME Emulating BOS/EOS
+                    /*
+                    if (
+                        (pos == seq.getOrder() - 1 &&
+                            seq.labels[pos] != 0) ||
+                        (pos != seq.getOrder() - 1 && pos != this.length() - 1 && seq.getOrder() > 0 && seq.labels[seq.getOrder() - 1] == 0) || 
+                        (pos == this.length() - 1 && seq.labels[0] != 0) ||
+                        (pos != this.length() - 1 && pos != 0 && seq.getOrder() > 0 && seq.labels[0] == 0)
+                        ) {
                         continue;
                     }
-                    LabelSequence seq = feature.getLabelSequence();
+                    */
+                    
                     if (!curMap.containsKey(seq)) {
                         curMap.put(seq, new Pattern());
                     }
@@ -159,19 +168,20 @@ public class DataSequence {
                 }
                 int diffPos = curLabelSequence.getDifferencePosition(prevLabelSequence);
                 curPattern.longestSuffixPattern = longestSuffixCandidateList.get(diffPos);
-                for (int i = diffPos; i < curLabelSequence.getOrder(); ++i) {
+                for (int i = diffPos + 1; i < curLabelSequence.getOrder(); ++i) {
                     longestSuffixCandidateList.set(i, longestSuffixCandidateList.get(diffPos));
                 }
                 longestSuffixCandidateList.set(curLabelSequence.getOrder(), curPattern);
                 if ((pos > 0 && curPattern.prevPattern == null) || curPattern.longestSuffixPattern == null) {
                     pos = 10000;
                 }
+                prevLabelSequence = curLabelSequence;
             }
             
             List<Pattern> patternList = new ArrayList<Pattern>();
             patternList.addAll(mapList.get(pos).values());
             Pattern longestMatchPattern = patternList.get(0);
-            if (hasValidLabels && pos > 1) {
+            if (hasValidLabels) {
                 SortedMap<LabelSequence, Pattern> prevMap = mapList.get(pos);
                 for (int length = Math.min(maxOrder, pos + 1); length > 0; --length) {
                     LabelSequence key = getLabelSequence(pos, length);
