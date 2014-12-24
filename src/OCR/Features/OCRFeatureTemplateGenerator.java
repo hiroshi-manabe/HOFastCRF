@@ -43,8 +43,6 @@ public class OCRFeatureTemplateGenerator extends FeatureTemplateGenerator<CharDe
                 }
             }
         }
-        obs.add(new FeatureTemplate("DUMMY", 2));
-        obs.add(new FeatureTemplate("DUMMY", 3));
         return obs;
     }
 

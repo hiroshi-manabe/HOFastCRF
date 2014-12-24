@@ -6,7 +6,6 @@ import java.io.*;
 import java.util.*;
 
 import postagger.features.PrefixSuffixFeatureTemplateGenerator;
-import postagger.features.UnconditionalFeatureTemplateGenerator;
 import postagger.features.WordRangeFeatureTemplateGenerator;
 
 public class PosTagger {
@@ -54,7 +53,7 @@ public class PosTagger {
         
         AggregatedFeatureTemplateGenerator<String> gen = new AggregatedFeatureTemplateGenerator<String>();
         
-        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator(2));
+        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<String>(2));
         gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(0, 0, 2));
         gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(-1, -1, 3));
         gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(+1, +1, 1));

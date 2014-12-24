@@ -100,7 +100,10 @@ public class OCR {
         labelmap.write("learntModels/fold" + trainFold + "/labelmap");
         
         // Train and save model
-        highOrderCrfModel = new HighOrderFastCRF<CharDetails>(new OCRFeatureTemplateGenerator());
+        AggregatedFeatureTemplateGenerator<CharDetails> gen = new AggregatedFeatureTemplateGenerator<CharDetails>();
+        gen.addFeatureTemplateGenerator(new OCRFeatureTemplateGenerator());
+        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<>(3));
+        highOrderCrfModel = new HighOrderFastCRF<CharDetails>(gen);
         highOrderCrfModel.train(trainData, 3, 1000, 1, 1.0, 0.001);
         highOrderCrfModel.write("learntModels/fold" + trainFold + "/crf");
     }
