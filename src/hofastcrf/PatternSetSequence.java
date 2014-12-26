@@ -37,6 +37,10 @@ public class PatternSetSequence {
     }
     
     int[] executeViterbi() {
+        for (PatternSet patternSet : patternSetList) {
+            patternSet.initializeScores();
+            patternSet.setPatternWeights();
+        }
         patternSetList.get(patternSetList.size() - 1).setLastBestScore();
         for (int i = patternSetList.size() - 1; i >= 0; --i) {
             PatternSet patternSet = patternSetList.get(i);
