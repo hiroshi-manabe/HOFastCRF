@@ -33,7 +33,6 @@ import OCR.Features.*;
 public class OCR {
 
     int trainFold = 0;
-    HighOrderFastCRF<CharDetails> highOrderCrfModel; // High-order CRF model
     String configFile; // Configuration filename
     FeatureTemplateGenerator<CharDetails> generator;
 
@@ -94,6 +93,8 @@ public class OCR {
     
     public void train() throws IOException {
     
+        HighOrderFastCRF<CharDetails> highOrderCrfModel; // High-order CRF model
+        
         // Set training file name and create output directory
         String trainFilename = "letter.data";
         File dir = new File("learntModels/fold" + trainFold);
@@ -108,22 +109,20 @@ public class OCR {
         highOrderCrfModel.write("learntModels/fold" + trainFold + "/crfmodel");
     }
 
-    @SuppressWarnings("unchecked")
     public void test() throws IOException, ClassNotFoundException, InterruptedException {
         
         // Read the model
-        ObjectInput input = new ObjectInputStream(new BufferedInputStream(new FileInputStream("learntModels/fold" + trainFold + "/crfmodel")));
-        highOrderCrfModel = (HighOrderFastCRF<CharDetails>)input.readObject();
-        input.close();
+        HighOrderFastCRF<CharDetails> highOrderCRFModel = new HighOrderFastCRF<CharDetails>();
+        highOrderCRFModel.read("learntModels/fold" + trainFold + "/crfmodel");
         
         // Run Viterbi algorithm
         System.out.print("Running Viterbi...");
         String testFilename = "letter.data";
         List<RawDataSequence<CharDetails>> testData = readTagged(testFilename, trainFold, false);
-        String[][] trueLabels = highOrderCrfModel.extractLabels(testData);
+        String[][] trueLabels = highOrderCRFModel.extractLabels(testData);
         
         long startTime = System.currentTimeMillis();
-        String[][] predictedLabels = highOrderCrfModel.decode(testData, generator);
+        String[][] predictedLabels = highOrderCRFModel.decode(testData, generator);
         System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
 
         // Print out the predicted data and score
