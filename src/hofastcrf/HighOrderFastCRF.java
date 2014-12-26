@@ -62,7 +62,8 @@ public class HighOrderFastCRF<T> {
         modelData = new HighOrderCRFData(featureList, labelMap);
     }
 
-    public String[][] decode(List<RawDataSequence<T>> rawData, FeatureTemplateGenerator<T> featureTemplateGenerator) throws InterruptedException {
+    public String[][] decode(List<RawDataSequence<T>> rawData, FeatureTemplateGenerator<T> featureTemplateGenerator,
+            int concurrency) throws InterruptedException {
         Viterbi<T> viterbi = new Viterbi<T>(rawData, featureTemplateGenerator, modelData.getFeatureList(),
                 modelData.getLabelMap());
         Scheduler sch = new Scheduler(viterbi, 1, Scheduler.DYNAMIC_NEXT_AVAILABLE);

@@ -105,7 +105,7 @@ public class OCR {
         
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF<CharDetails>();
-        highOrderCrfModel.train(trainData, generator, 3, 1000, 1, 1.0, 0.001);
+        highOrderCrfModel.train(trainData, generator, 3, 1000, 4, 1.0, 0.001);
         highOrderCrfModel.write("learntModels/fold" + trainFold + "/crfmodel");
     }
 
@@ -122,7 +122,7 @@ public class OCR {
         String[][] trueLabels = highOrderCRFModel.extractLabels(testData);
         
         long startTime = System.currentTimeMillis();
-        String[][] predictedLabels = highOrderCRFModel.decode(testData, generator);
+        String[][] predictedLabels = highOrderCRFModel.decode(testData, generator, 4);
         System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
 
         // Print out the predicted data and score
