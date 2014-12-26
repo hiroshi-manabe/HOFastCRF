@@ -109,7 +109,7 @@ public class OCR {
     }
 
     @SuppressWarnings("unchecked")
-    public void test() throws IOException, ClassNotFoundException {
+    public void test() throws IOException, ClassNotFoundException, InterruptedException {
         
         // Read the model
         ObjectInput input = new ObjectInputStream(new BufferedInputStream(new FileInputStream("learntModels/fold" + trainFold + "/crfmodel")));
@@ -120,10 +120,10 @@ public class OCR {
         System.out.print("Running Viterbi...");
         String testFilename = "letter.data";
         List<RawDataSequence<CharDetails>> testData = readTagged(testFilename, trainFold, false);
-        int[][] trueLabels = highOrderCrfModel.extractLabels(testData);
+        String[][] trueLabels = highOrderCrfModel.extractLabels(testData);
         
         long startTime = System.currentTimeMillis();
-        int[][] predictedLabels = highOrderCrfModel.decode(testData, generator);
+        String[][] predictedLabels = highOrderCrfModel.decode(testData, generator);
         System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
 
         // Print out the predicted data and score
@@ -133,8 +133,7 @@ public class OCR {
         // Score the result
         System.out.println("Scoring results...");
         startTime = System.currentTimeMillis();
-        List<RawDataSequence<CharDetails>> trueTestData = readTagged(testFilename, trainFold, false);
-        Scorer scr = new Scorer(trueTestData.getSeqList(), testData.getSeqList(), labelmap, false);
+        Scorer scr = new Scorer(trueLabels, predictedLabels, false);
         scr.tokenScore();
         System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
     }

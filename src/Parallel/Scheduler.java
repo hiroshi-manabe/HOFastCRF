@@ -83,7 +83,7 @@ public class Scheduler {
         }
     }
 
-    public void run() throws Exception {
+    public void run() throws InterruptedException  {
         for (int i = 0; i < nThreads; i++) {
             threads[i].start();
         }
@@ -93,7 +93,7 @@ public class Scheduler {
     }
     
     // Simple test program
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws InterruptedException {
         
         class SimpleTask implements Schedulable {
 
@@ -157,7 +157,11 @@ public class Scheduler {
         Timer.start();
         int policy = Scheduler.STATIC_UNIFORM_ALLOCATE;
         policy = Scheduler.DYNAMIC_NEXT_AVAILABLE;
-        (new Scheduler(new SimpleTask(Integer.parseInt(args[0])), Integer.parseInt(args[1]), policy)).run();
+        try {
+            (new Scheduler(new SimpleTask(Integer.parseInt(args[0])), Integer.parseInt(args[1]), policy)).run();
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
         Timer.record("thread");
         Timer.report();
     }
