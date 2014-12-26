@@ -78,7 +78,7 @@ public class Viterbi<T> implements Schedulable {
         int[] labels = patternSetSequence.executeViterbi();
         String[] strLabels = new String[labels.length];
         for (int i = 0; i < labels.length; ++i) {
-            strLabels[i] = reversedLabelMap.get(i);
+            strLabels[i] = reversedLabelMap.get(labels[i]);
         }
         labelArrayArray[taskID] = strLabels;
         return null;
