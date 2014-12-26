@@ -3,10 +3,15 @@ package hofastcrf;
 import java.util.List;
 
 public class PatternSetSequence {
+    
     List<PatternSet> patternSetList;
+    Pattern dummyPattern;
     
     PatternSetSequence(List<PatternSet> patternSetList) {
         this.patternSetList = patternSetList;
+        this.dummyPattern = new Pattern();
+        dummyPattern.gamma = 1.0;
+        patternSetList.get(0).setPrevPattern(dummyPattern);
     }
     
     void updateFeatureExpectation() {
@@ -29,6 +34,22 @@ public class PatternSetSequence {
         for (PatternSet patternSet : patternSetList) {
             patternSet.addFeatureExpectations();
         }
+    }
+    
+    int[] executeViterbi() {
+        patternSetList.get(patternSetList.size() - 1).setLastBestScore();
+        for (int i = patternSetList.size() - 1; i >= 0; --i) {
+            PatternSet patternSet = patternSetList.get(i);
+            patternSet.updateBestScore();
+            patternSet.executeViterbi();
+        }
+        int[] ret = new int[patternSetList.size()];
+        Pattern pattern = dummyPattern;
+        for (int i = 0; i < patternSetList.size(); ++i) {
+            pattern = pattern.bestNextPattern;
+            ret[i] = pattern.featureList.get(0).pat.labels[0];
+        }
+        return ret;
     }
     
     double getZ() {

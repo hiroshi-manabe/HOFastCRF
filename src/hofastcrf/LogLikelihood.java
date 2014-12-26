@@ -1,6 +1,7 @@
 package hofastcrf;
 
 public class LogLikelihood {
+    
     private double logLikelihood;
     
     LogLikelihood(double logLikelihood) {

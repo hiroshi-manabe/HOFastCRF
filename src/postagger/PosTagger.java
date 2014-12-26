@@ -61,8 +61,8 @@ public class PosTagger {
         gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(false, 1, 2));
         
         // Train and save model
-        highOrderCrfModel = new HighOrderFastCRF<String>(gen);
-        highOrderCrfModel.train(trainData, 3, 1000, 1, 1.0, 0.001);
+        highOrderCrfModel = new HighOrderFastCRF<String>();
+        highOrderCrfModel.train(trainData, gen, 3, 1000, 1, 1.0, 0.001);
     }
 
     public void test() throws Exception {

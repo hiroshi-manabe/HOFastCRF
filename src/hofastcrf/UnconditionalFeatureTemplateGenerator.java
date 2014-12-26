@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UnconditionalFeatureTemplateGenerator<T> extends FeatureTemplateGenerator<T> {
+    
     private final int maxOrder;
     
     public UnconditionalFeatureTemplateGenerator(int maxOrder) {

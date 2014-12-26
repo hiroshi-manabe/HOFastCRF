@@ -3,6 +3,7 @@ package hofastcrf;
 import java.util.Arrays;
 
 public class LabelSequence implements Comparable<LabelSequence> {
+    
     int[] labels;
     
     public LabelSequence(int[] labels) {

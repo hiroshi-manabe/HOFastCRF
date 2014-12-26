@@ -34,15 +34,19 @@ public class OCR {
 
     int trainFold = 0;
     HighOrderFastCRF<CharDetails> highOrderCrfModel; // High-order CRF model
-    LabelMap labelmap = new LabelMap(); // Label map
     String configFile; // Configuration filename
+    FeatureTemplateGenerator<CharDetails> generator;
 
     public OCR(String filename, String fold) {
         configFile = filename;
         trainFold = Integer.parseInt(fold);
+        AggregatedFeatureTemplateGenerator<CharDetails> gen = new AggregatedFeatureTemplateGenerator<CharDetails>();
+        gen.addFeatureTemplateGenerator(new OCRFeatureTemplateGenerator());
+        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<>(3));
+        generator = gen; 
     }
 
-    public RawDataSet<CharDetails> readTagged(String filename, int trainFold, boolean isTraining) throws Exception {
+    public List<RawDataSequence<CharDetails>> readTagged(String filename, int trainFold, boolean isTraining) throws IOException {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
         List<RawDataSequence<CharDetails>> td = new ArrayList<RawDataSequence<CharDetails>>();
@@ -85,10 +89,10 @@ public class OCR {
         }
 
         in.close();
-        return new RawDataSet<CharDetails>(td);
+        return td;
     }
     
-    public void train() throws Exception {
+    public void train() throws IOException {
     
         // Set training file name and create output directory
         String trainFilename = "letter.data";
@@ -96,41 +100,43 @@ public class OCR {
         dir.mkdirs();
         
         // Read training data and save the label map
-        RawDataSet<CharDetails> trainData = readTagged(trainFilename, trainFold, true);
-        labelmap.write("learntModels/fold" + trainFold + "/labelmap");
+        RawDataSet<CharDetails> trainData = new RawDataSet<CharDetails>(readTagged(trainFilename, trainFold, true));
         
         // Train and save model
-        AggregatedFeatureTemplateGenerator<CharDetails> gen = new AggregatedFeatureTemplateGenerator<CharDetails>();
-        gen.addFeatureTemplateGenerator(new OCRFeatureTemplateGenerator());
-        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<>(3));
-        highOrderCrfModel = new HighOrderFastCRF<CharDetails>(gen);
-        highOrderCrfModel.train(trainData, 3, 1000, 1, 1.0, 0.001);
-        highOrderCrfModel.write("learntModels/fold" + trainFold + "/crf");
+        highOrderCrfModel = new HighOrderFastCRF<CharDetails>();
+        highOrderCrfModel.train(trainData, generator, 3, 1000, 1, 1.0, 0.001);
+        highOrderCrfModel.write("learntModels/fold" + trainFold + "/crfmodel");
     }
 
-    public void test() throws Exception {
-        // Read label map, features, and CRF model
-//        labelmap.read("learntModels/fold" + trainFold + "/labelmap");
-//        highOrderCrfModel = new HighOrderFastCRF(featureGen);
-//        highOrderCrfModel.read("learntModels/fold" + trainFold + "/crf");
-
+    @SuppressWarnings("unchecked")
+    public void test() throws IOException, ClassNotFoundException {
+        
+        // Read the model
+        ObjectInput input = new ObjectInputStream(new BufferedInputStream(new FileInputStream("learntModels/fold" + trainFold + "/crfmodel")));
+        highOrderCrfModel = (HighOrderFastCRF<CharDetails>)input.readObject();
+        input.close();
+        
         // Run Viterbi algorithm
-//        System.out.print("Running Viterbi...");
-//        String testFilename = "letter.data";
-//        long startTime = System.currentTimeMillis();
-//        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
-//
-//        // Print out the predicted data and score
-//        File dir = new File("out/");
-//        dir.mkdirs();
-//
-//        // Score the result
-//        System.out.println("Scoring results...");
-//        startTime = System.currentTimeMillis();
-//        DataSet trueTestData = readTagged(testFilename, trainFold, false);
-//        Scorer scr = new Scorer(trueTestData.getSeqList(), testData.getSeqList(), labelmap, false);
-//        scr.tokenScore();
-//        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
+        System.out.print("Running Viterbi...");
+        String testFilename = "letter.data";
+        List<RawDataSequence<CharDetails>> testData = readTagged(testFilename, trainFold, false);
+        int[][] trueLabels = highOrderCrfModel.extractLabels(testData);
+        
+        long startTime = System.currentTimeMillis();
+        int[][] predictedLabels = highOrderCrfModel.decode(testData, generator);
+        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
+
+        // Print out the predicted data and score
+        File dir = new File("out/");
+        dir.mkdirs();
+
+        // Score the result
+        System.out.println("Scoring results...");
+        startTime = System.currentTimeMillis();
+        List<RawDataSequence<CharDetails>> trueTestData = readTagged(testFilename, trainFold, false);
+        Scorer scr = new Scorer(trueTestData.getSeqList(), testData.getSeqList(), labelmap, false);
+        scr.tokenScore();
+        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
     }
 
     public static void main(String argv[]) throws Exception {

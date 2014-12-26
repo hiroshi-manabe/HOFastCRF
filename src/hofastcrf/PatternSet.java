@@ -3,6 +3,7 @@ package hofastcrf;
 import java.util.List;
 
 public class PatternSet {
+    
     List<Pattern> patternList;
     Pattern longestMatchPattern;
     
@@ -21,7 +22,17 @@ public class PatternSet {
             pattern.delta = 0.0;
             pattern.theta = 0.0;
             pattern.sigma = 0.0;
+            pattern.bestScore = 0.0;
             pattern.weight = 1.0;
+            pattern.longestSuffixPattern = Pattern.DUMMY_PATTERN;
+            pattern.prevPattern = Pattern.DUMMY_PATTERN;
+            pattern.bestNextPattern = Pattern.DUMMY_PATTERN;
+        }
+    }
+    
+    void setPrevPattern(Pattern prevPattern) {
+        for (Pattern pattern : patternList) {
+            pattern.prevPattern = prevPattern;
         }
     }
     
@@ -54,6 +65,50 @@ public class PatternSet {
     
     void setLastDelta() {
         patternList.get(0).delta = 1.0;
+    }
+    
+    void setLastBestScore() {
+        patternList.get(0).bestScore = 1.0;
+    }
+    
+    void updateBestScore() {
+        for (int i = 1; i < patternList.size(); ++i) {
+            Pattern pattern = patternList.get(i);
+            if (pattern.bestNextPattern == Pattern.DUMMY_PATTERN) {
+                pattern.bestNextPattern = pattern.longestSuffixPattern.bestNextPattern;
+                pattern.bestScore = pattern.longestSuffixPattern.bestScore;
+            }
+        }
+        patternList.get(0).bestScore = 0.0;
+        for (int i = 1; i < patternList.size(); ++i) {
+            Pattern pattern = patternList.get(i);
+            pattern.bestScore *= pattern.weight;
+        }
+        scaleBestScore();
+    }
+    
+    void executeViterbi() {
+        for (int i = 1; i < patternList.size(); ++i) {
+            Pattern pattern = patternList.get(i);
+            if (pattern.bestScore > pattern.prevPattern.bestScore) {
+                pattern.prevPattern.bestScore = pattern.bestScore;
+                pattern.prevPattern.bestNextPattern = pattern;
+            }
+        }
+    }
+    
+    void scaleBestScore() {
+        double bestProb = 0;  
+        for (Pattern pattern : patternList) {
+            if (pattern.bestScore > bestProb) {
+                bestProb = pattern.bestScore;
+            }
+        }
+        int bestProbExponent = (int)((Double.doubleToLongBits(bestProb) & 0x7ff0000000000000L) >> 52) - 1023;
+        double expScale = Math.pow(2.0, -bestProbExponent);
+        for (Pattern pattern : patternList) {
+            pattern.bestScore *= expScale;
+        }
     }
     
     void calcBeta() {
@@ -96,6 +151,7 @@ public class PatternSet {
             this.scale = maxAlphaExponent;
         }
     }
+    
     void scaleBeta() {
         double expScale = Math.pow(2.0, this.scale);
         for (Pattern pattern : patternList) {

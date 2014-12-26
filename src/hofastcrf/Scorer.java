@@ -31,7 +31,7 @@ import java.util.Map;
  * @author Nguyen Viet Cuong
  * @author Ye Nan
  */
-public class Scorer {
+public class Scorer<T> {
 
     String[][] labels; // True labels
     String[][] predicted; // Predicted labels
@@ -43,18 +43,9 @@ public class Scorer {
      * @param labelmap Label map
      * @param RM_SUFFIX If set to true, suffixes of labels after '-' will be removed
      */
-    public Scorer(List<DataSequence> trueData, List<DataSequence> predictedData, LabelMap labelmap, boolean RM_SUFFIX) {
-        labels = new String[trueData.size()][];
-        for (int i = 0; i < trueData.size(); i++) {
-            DataSequence seq = trueData.get(i);
-            labels[i] = labelmap.revArray(seq.labels);
-        }
-        
-        predicted = new String[predictedData.size()][];
-        for (int i = 0; i < predictedData.size(); i++) {
-            DataSequence seq = predictedData.get(i);
-            predicted[i] = labelmap.revArray(seq.labels);
-        }
+    public Scorer(String[][] trueData, String[][] predictedData, Map<String, Integer> labelMap, boolean RM_SUFFIX) {
+        labels = trueData;
+        predicted = predictedData;
         
         if (RM_SUFFIX) {
             removeSuffix(labels);

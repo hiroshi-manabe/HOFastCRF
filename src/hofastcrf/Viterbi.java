@@ -19,51 +19,75 @@ along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package hofastcrf;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import Parallel.Schedulable;
 
-/**
- * Implementation of the Viterbi algorithm
- * @author Nguyen Viet Cuong
- * @author Sumit Bhagwani
- */
-public class Viterbi implements Schedulable {
+public class Viterbi<T> implements Schedulable {
 
     int curID; // Current task ID (for parallelization)
-    double[] lambda; // Lambda vector
-    List<DataSequence> data; // List of testing sequences
-    final int BASE = 1; // Base of the logAlpha array
+    List<RawDataSequence<T>> rawDataSequenceList; // List of testing sequences
+    FeatureTemplateGenerator<T> generator;
+    final List<Feature> featureList;
+    final Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap;
+    final Map<String, Integer> labelMap;
+    final Map<Integer, String> reversedLabelMap;
+    final int maxOrder;
+    String[][] labelArrayArray;
 
-    /**
-     * Construct a Viterbi class.
-     * @param lambda Lambda vector
-     * @param data Testing data
-     */
-    public Viterbi(double[] lambda, List<DataSequence> data) {
+    public Viterbi(List<RawDataSequence<T>> rawDataSequenceList, FeatureTemplateGenerator<T> generator, 
+            List<Feature> featureList, Map<String, Integer> labelMap) {
+        curID = -1;
+        this.rawDataSequenceList = rawDataSequenceList;
+        this.generator = generator;
+        this.featureList = featureList;
+        this.labelMap = labelMap;
+        this.labelArrayArray = new String[rawDataSequenceList.size()][];
+        
+        featureTemplateToFeatureMap = new HashMap<FeatureTemplate, List<Feature>>();
+        int maxOrder = 0;
+        for (Feature f : featureList) {
+            if (f.pat.getOrder() > maxOrder) {
+                maxOrder = f.pat.getOrder();
+            }
+            FeatureTemplate ft = f.createFeatureTemplate();
+            if (!featureTemplateToFeatureMap.containsKey(ft)) {
+                featureTemplateToFeatureMap.put(ft, new ArrayList<Feature>());
+            }
+            featureTemplateToFeatureMap.get(ft).add(f);
+        }
+        this.maxOrder = maxOrder;
+        
+        reversedLabelMap = new HashMap<Integer, String>();
+        for (Map.Entry<String, Integer> entry : labelMap.entrySet()) {
+            reversedLabelMap.put(entry.getValue(), entry.getKey());
+        }
     }
     
-    /**
-     * Run the Viterbi algorithm for a given sequence.
-     * @param taskID Index of the sequence
-     * @return The updated sequence
-     */
+    public String[][] getPredictedLabels() {
+        return labelArrayArray;
+    }
+    
     public Object compute(int taskID) {
+        RawDataSequence<T> rawDataSequence = rawDataSequenceList.get(taskID);
+        DataSequence dataSequence = rawDataSequence.convertToDataSequence(generator, labelMap, maxOrder);
+        PatternSetSequence patternSetSequence = dataSequence.generatePatternSetSequence(featureTemplateToFeatureMap);
+        int[] labels = patternSetSequence.executeViterbi();
+        String[] strLabels = new String[labels.length];
+        for (int i = 0; i < labels.length; ++i) {
+            strLabels[i] = reversedLabelMap.get(i);
+        }
+        labelArrayArray[taskID] = strLabels;
         return null;
     }
     
-    /**
-     * Return total number of tasks (for parallelization).
-     * @return Training dataset size
-     */
     public int getNumTasks() {
-        return data.size();
+        return rawDataSequenceList.size();
     }
 
-    /**
-     * Return the next task ID (for parallelization).
-     * @return The next sequence ID
-     */
     public synchronized int fetchCurrTaskID() {
         if (curID < getNumTasks()) {
             curID++;
@@ -71,11 +95,6 @@ public class Viterbi implements Schedulable {
         return curID;
     }
 
-    /**
-     * Update partial result (for parallelization).
-     * Note that this method does nothing in this case.
-     * @param partialResult Partial result
-     */
     public void update(Object partialResult) {
         // Do nothing
     }

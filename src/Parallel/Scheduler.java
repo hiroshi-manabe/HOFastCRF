@@ -99,17 +99,12 @@ public class Scheduler {
 
             double[] ans;
             int curID;
-            static final int N = 1000000;
             int nTasks;
 
             public SimpleTask(int nTasks) {
                 curID = -1;
                 this.nTasks = nTasks;
                 ans = new double[2];
-            }
-
-            public void showResult() {
-                System.out.println(ans[0] + " " + ans[1]);
             }
 
             public Object compute(int taskID) {
@@ -127,10 +122,6 @@ public class Scheduler {
                 result[0] = a;
                 result[1] = 2;
                 return result;
-            }
-
-            public int getNumCompletedTasks() {
-                return curID;
             }
 
             public int getNumTasks() {

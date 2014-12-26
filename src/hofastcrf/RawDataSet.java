@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RawDataSet<T> {
+    
     List<RawDataSequence<T>> rawDataSequenceList;
     
     public RawDataSet(List<RawDataSequence<T>> rawDataSequenceList) {

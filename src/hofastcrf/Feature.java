@@ -1,15 +1,17 @@
 package hofastcrf;
 
+import java.io.Serializable;
+
 /**
  * Feature class
  * @author Hiroshi Manabe
  */
-public class Feature {
-
+@SuppressWarnings("serial")
+public class Feature implements Serializable {
     String obs;
     LabelSequence pat;
     double expWeight;
-    double expectation;
+    transient double expectation;
 
     public Feature(String obs, LabelSequence pat) {
         this.obs = obs;
