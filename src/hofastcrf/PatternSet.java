@@ -14,7 +14,7 @@ public class PatternSet {
         this.longestMatchPattern = longestMatchPattern;
     }
     
-    void initialize() {
+    void initializeScores() {
         for (Pattern pattern : patternList) {
             pattern.alpha = 0.0;
             pattern.beta = 0.0;
@@ -24,8 +24,6 @@ public class PatternSet {
             pattern.sigma = 0.0;
             pattern.bestScore = 0.0;
             pattern.weight = 1.0;
-            pattern.longestSuffixPattern = Pattern.DUMMY_PATTERN;
-            pattern.prevPattern = Pattern.DUMMY_PATTERN;
             pattern.bestNextPattern = Pattern.DUMMY_PATTERN;
         }
     }

@@ -6,6 +6,7 @@ import java.util.Map;
 
 @SuppressWarnings("serial")
 public class HighOrderCRFData implements Serializable {
+    
     final List<Feature> featureList;
     final Map<String, Integer> labelMap;
     

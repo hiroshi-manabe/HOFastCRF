@@ -16,7 +16,7 @@ public class PatternSetSequence {
     
     void updateFeatureExpectation() {
         for (PatternSet patternSet : patternSetList) {
-            patternSet.initialize();
+            patternSet.initializeScores();
             patternSet.setPatternWeights();
             patternSet.calcAlpha();
             patternSet.calcGamma();
@@ -66,9 +66,6 @@ public class PatternSetSequence {
         ret -= Math.log(getZ());
         for (PatternSet patternSet : patternSetList) {
             ret -= Math.log(2.0)  * patternSet.scale;
-        }
-        if (Double.isNaN(ret)) {
-            ret += 1.0;
         }
         return ret;
     }

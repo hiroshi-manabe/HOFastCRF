@@ -109,18 +109,6 @@ public class DataSequence {
                 List<Feature> featureList = featureTemplateToFeatureMap.get(template);
                 for (Feature feature : featureList) {
                     LabelSequence seq = feature.getLabelSequence();
-                    //FIXME Emulating BOS/EOS
-                    /*
-                    if (
-                        (pos == seq.getOrder() - 1 &&
-                            seq.labels[pos] != 0) ||
-                        (pos != seq.getOrder() - 1 && pos != this.length() - 1 && seq.getOrder() > 0 && seq.labels[seq.getOrder() - 1] == 0) || 
-                        (pos == this.length() - 1 && seq.labels[0] != 0) ||
-                        (pos != this.length() - 1 && pos != 0 && seq.getOrder() > 0 && seq.labels[0] == 0)
-                        ) {
-                        continue;
-                    }
-                    */
                     
                     if (!curMap.containsKey(seq)) {
                         curMap.put(seq, new Pattern());
@@ -172,9 +160,6 @@ public class DataSequence {
                     longestSuffixCandidateList.set(i, longestSuffixCandidateList.get(diffPos));
                 }
                 longestSuffixCandidateList.set(curLabelSequence.getOrder(), curPattern);
-                if ((pos > 0 && curPattern.prevPattern == null) || curPattern.longestSuffixPattern == null) {
-                    pos = 10000;
-                }
                 prevLabelSequence = curLabelSequence;
             }
             

@@ -23,6 +23,7 @@ public class Pattern {
         longestSuffixPattern = DUMMY_PATTERN;
         bestNextPattern = DUMMY_PATTERN;
         bestScore = 0.0;
+        weight = 1.0;
     }
     
     static final Pattern DUMMY_PATTERN;

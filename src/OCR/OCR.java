@@ -138,7 +138,7 @@ public class OCR {
         System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
     }
 
-    public static void main(String argv[]) throws Exception {
+    public static void main(String argv[]) throws IOException, ClassNotFoundException, InterruptedException {
         OCR ocr = new OCR(argv[1], argv[2]);
         if (argv[0].toLowerCase().equals("all")) {
             ocr.train();

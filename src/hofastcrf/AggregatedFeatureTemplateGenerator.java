@@ -5,6 +5,7 @@ import java.util.List;
 
 public class AggregatedFeatureTemplateGenerator<T> extends
         FeatureTemplateGenerator<T> {
+    
     private List<FeatureTemplateGenerator<T>> generatorList = new ArrayList<FeatureTemplateGenerator<T>>();
     
     @Override

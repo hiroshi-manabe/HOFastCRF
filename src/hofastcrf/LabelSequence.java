@@ -1,8 +1,10 @@
 package hofastcrf;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class LabelSequence implements Comparable<LabelSequence> {
+@SuppressWarnings("serial")
+public class LabelSequence implements Comparable<LabelSequence>, Serializable {
     
     int[] labels;
     

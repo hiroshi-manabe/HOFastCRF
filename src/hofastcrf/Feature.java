@@ -8,6 +8,7 @@ import java.io.Serializable;
  */
 @SuppressWarnings("serial")
 public class Feature implements Serializable {
+    
     String obs;
     LabelSequence pat;
     double expWeight;
