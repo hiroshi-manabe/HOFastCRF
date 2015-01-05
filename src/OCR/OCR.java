@@ -28,6 +28,7 @@ import OCR.Features.*;
 
 /**
  * Handwritten Character Recognition
+ * @author Hiroshi Manabe
  * @author Nguyen Viet Cuong
  */
 public class OCR {
@@ -41,7 +42,7 @@ public class OCR {
         trainFold = Integer.parseInt(fold);
         AggregatedFeatureTemplateGenerator<CharDetails> gen = new AggregatedFeatureTemplateGenerator<CharDetails>();
         gen.addFeatureTemplateGenerator(new OCRFeatureTemplateGenerator());
-        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<>(3));
+        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<CharDetails>(3));
         generator = gen; 
     }
 
