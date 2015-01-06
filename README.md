@@ -1,60 +1,50 @@
+Copyright (C) 2014 Hiroshi Manabe
 Copyright (C) 2012 Nguyen Viet Cuong, Ye Nan, Sumit Bhagwani
 
-This is the README file for HOSemiCRF version 1.0
+This is the README file for HOFastCRF version 1.0.
+HOFastCRF is based on HOSemiCRF by Nguyen Viet Cuong, Ye Nan, Sumit Bhagwani.
 
-HOSemiCRF is free software: you can redistribute it and/or modify
+HOFastCRF is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-HOSemiCRF is distributed in the hope that it will be useful,
+HOFastCRF is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with HOSemiCRF. If not, see <http://www.gnu.org/licenses/>.
+along with HOFastCRF. If not, see <http://www.gnu.org/licenses/>.
 
 === WARNING ===
 
-HOSemiCRF requires a lot of memory usage. It is best to run the program 
+HOFastCRF requires a lot of memory usage. It is best to run the program 
 in parallel on a computing cluster with lots of memory.
 
 === COMPILATION STEPS ===
 
 Requirement: Apache Ant (http://ant.apache.org/)
 
-1. Download the HOSemiCRF repository as a zip file: HOSemiCRF-master.zip
+1. Download the HOFastCRF repository as a zip file: HOFastCRF-master.zip
 2. Unzip the file:
 
-    unzip HOSemiCRF-master.zip
+    unzip HOFastCRF-master.zip
 
 3. Compile the program:
 
-    cd HOSemiCRF-master
+    cd HOFastCRF-master
     
     ant
 
-=== RUN THE PUNCTUATION PREDICTION PROGRAM ===
-
-    cp dist/lib/HOSemiCRF.jar run/punc/
-    cd run/punc
-    java -cp "HOSemiCRF.jar" Applications.PunctuationPredictor all punc.conf
-    
-=== RUN THE REFERENCE PREDICTION PROGRAM ===
-    
-    cp dist/lib/HOSemiCRF.jar run/ref/
-    cd run/ref
-    java -cp "HOSemiCRF.jar" Applications.ReferenceTagger all ref.conf
-    
 === RUN THE OCR PROGRAM ===
 
 Download data from http://www.seas.upenn.edu/~taskar/ocr/ to the folder run/ocr/
     
-    cp dist/lib/HOSemiCRF.jar run/ocr/
+    cp dist/lib/HOFastCRF.jar run/ocr/
     cd run/ocr
-    java -cp "HOSemiCRF.jar" OCR.OCR all ocr.conf 0
+    java -cp "HOFastCRF.jar" OCR.OCR all ocr.conf 0
     
 === MORE INFO ===
 
-Please visit: https://github.com/nvcuong/HOSemiCRF/wiki
+Please visit: https://github.com/hiroshi-manabe/HOFastCRF/wiki
