@@ -1,7 +1,9 @@
 Copyright (C) 2014 Hiroshi Manabe
+
 Copyright (C) 2012 Nguyen Viet Cuong, Ye Nan, Sumit Bhagwani
 
 This is the README file for HOFastCRF version 1.0.
+
 HOFastCRF is based on HOSemiCRF by Nguyen Viet Cuong, Ye Nan, Sumit Bhagwani.
 
 HOFastCRF is free software: you can redistribute it and/or modify
