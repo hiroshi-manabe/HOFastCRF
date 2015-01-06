@@ -61,10 +61,10 @@ public class DataSequence {
      */
     public LabelSequence getLabelSequence(int pos, int length) {
         if (!hasValidLabels) {
-            return new LabelSequence(new int[0]);
+            return LabelSequence.createEmptyLabelSequence();
         }
         if (pos < length - 1) {
-            return new LabelSequence(new int[0]);
+            return LabelSequence.createEmptyLabelSequence();
         }
         int[] labels = new int[length];
         for (int i = 0; i < length; ++i) {
