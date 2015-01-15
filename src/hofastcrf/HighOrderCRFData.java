@@ -24,12 +24,21 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The class for the serialization of the high-order CRF model data.
+ * @author Hiroshi Manabe
+ */
 @SuppressWarnings("serial")
 public class HighOrderCRFData implements Serializable {
     
-    final List<Feature> featureList;
-    final Map<String, Integer> labelMap;
+    private final List<Feature> featureList;
+    private final Map<String, Integer> labelMap;
     
+    /**
+     * Constructor.
+     * @param featureList
+     * @param labelMap
+     */
     public HighOrderCRFData(List<Feature> featureList, Map<String, Integer> labelMap) {
         this.featureList = featureList;
         this.labelMap = labelMap;
@@ -38,7 +47,7 @@ public class HighOrderCRFData implements Serializable {
     public List<Feature> getFeatureList() {
         return featureList;
     }
-
+    
     public Map<String, Integer> getLabelMap() {
         return labelMap;
     }

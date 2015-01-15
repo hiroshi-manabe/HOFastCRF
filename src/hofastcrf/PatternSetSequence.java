@@ -22,19 +22,30 @@ package hofastcrf;
 
 import java.util.List;
 
+/**
+ * A class that represents the sequence of the pattern sets converted from a data sequence.
+ * @author Hiroshi Manabe
+  */
 public class PatternSetSequence {
     
     List<PatternSet> patternSetList;
     Pattern dummyPattern;
     
+    /**
+     * Constructor.
+     * @param patternSetList
+     */
     PatternSetSequence(List<PatternSet> patternSetList) {
         this.patternSetList = patternSetList;
-        this.dummyPattern = new Pattern();
+        this.dummyPattern = new Pattern(LabelSequence.createEmptyLabelSequence());
         dummyPattern.gamma = 1.0;
         patternSetList.get(0).setPrevPattern(dummyPattern);
     }
     
-    void updateFeatureExpectation() {
+    /**
+     * Executes the forward backward algorithm and accumulates the feature expectations.
+     */
+    void accumulateFeatureExpectation() {
         for (PatternSet patternSet : patternSetList) {
             patternSet.initializeScores();
             patternSet.setPatternWeights();
@@ -47,39 +58,23 @@ public class PatternSetSequence {
             patternSet.calcBeta();
             patternSet.calcDeltaAndOthers();
         }
-        addFeatureExpectations();
-    }
-    
-    void addFeatureExpectations() {
         for (PatternSet patternSet : patternSetList) {
             patternSet.addFeatureExpectations();
         }
     }
     
-    int[] executeViterbi() {
-        for (PatternSet patternSet : patternSetList) {
-            patternSet.initializeScores();
-            patternSet.setPatternWeights();
-        }
-        patternSetList.get(patternSetList.size() - 1).setLastBestScore();
-        for (int i = patternSetList.size() - 1; i >= 0; --i) {
-            PatternSet patternSet = patternSetList.get(i);
-            patternSet.updateBestScore();
-            patternSet.executeViterbi();
-        }
-        int[] ret = new int[patternSetList.size()];
-        Pattern pattern = dummyPattern;
-        for (int i = 0; i < patternSetList.size(); ++i) {
-            pattern = pattern.bestNextPattern;
-            ret[i] = pattern.featureList.get(0).pat.labels[0];
-        }
-        return ret;
-    }
-    
+    /**
+     * Returns the Z (normalization factor).
+     * @return
+     */
     double getZ() {
         return patternSetList.get(0).getZ();
     }
     
+    /**
+     * Calculates the log likelihood of the train set labels.
+     * @return log likelihood
+     */
     double calcLogLikelihood() {
         double ret = 0.0;
         // log probability of the train set labels
@@ -88,8 +83,66 @@ public class PatternSetSequence {
         }
         // log probability of the train set
         ret -= Math.log(getZ());
+        // scale
         for (PatternSet patternSet : patternSetList) {
             ret -= Math.log(2.0)  * patternSet.scale;
+        }
+        return ret;
+    }
+    
+    /**
+     * Infers the labels.
+     * @return
+     */
+    int[] decode() {
+        for (PatternSet patternSet : patternSetList) {
+            patternSet.initializeScores();
+            patternSet.setPatternWeights();
+        }
+        
+        patternSetList.get(0).setFirstBestScores();
+        
+        for (int i = 1; i < patternSetList.size(); ++i) {
+            int prevLabel = -1; 
+            PatternSet patternSet = patternSetList.get(i);
+            PatternSet prevPatternSet = patternSetList.get(i - 1);
+            int prevPatternSetIndex = 0;
+            
+            for (int patternSetIndex = patternSet.patternList.size() - 1; patternSetIndex > 0; --patternSetIndex) {
+                Pattern pattern = patternSet.patternList.get(patternSetIndex);
+                if (pattern.labelSequence.labels[0] != prevLabel) {
+                    prevPatternSet.resetBestScoresForLabel();
+                    prevPatternSetIndex = prevPatternSet.patternList.size() - 1;
+                }
+                while (prevPatternSet.patternList.get(prevPatternSetIndex) != pattern.prevPattern) {
+                    Pattern prevPattern = prevPatternSet.patternList.get(prevPatternSetIndex);
+                    if (prevPattern.bestScoreForLabel > prevPattern.longestSuffixPattern.bestScoreForLabel) {
+                        prevPattern.longestSuffixPattern.bestScoreForLabel = prevPattern.bestScoreForLabel;
+                        prevPattern.longestSuffixPattern.bestPrefixPattern = prevPattern.bestPrefixPattern;
+                    }
+                    --prevPatternSetIndex;
+                }
+                pattern.bestScore = pattern.prevPattern.bestScoreForLabel * pattern.weight;
+                pattern.bestPrevPattern = pattern.prevPattern.bestPrefixPattern;
+            }
+            patternSet.scaleBestScores();
+        }
+        
+        PatternSet lastPatternSet = patternSetList.get(patternSetList.size() - 1);
+        Pattern bestPattern = Pattern.DUMMY_PATTERN;
+        
+        for (int i = 1; i < lastPatternSet.patternList.size(); ++i) {
+            Pattern pattern = lastPatternSet.patternList.get(i);
+            if (pattern.bestScore > bestPattern.bestScore) {
+                bestPattern = pattern;
+            }
+        }
+        
+        int[] ret = new int[patternSetList.size()];
+
+        for (int i = patternSetList.size() - 1; i >= 0; --i) {
+            ret[i] = bestPattern.labelSequence.labels[0];
+            bestPattern = bestPattern.bestPrevPattern;
         }
         return ret;
     }

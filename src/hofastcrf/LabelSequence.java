@@ -23,23 +23,36 @@ package hofastcrf;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * The class for label sequences.  
+ * @author Hiroshi Manabe
+ */
 @SuppressWarnings("serial")
 public class LabelSequence implements Comparable<LabelSequence>, Serializable {
     
     int[] labels;
     
+    /**
+     * Constructor.
+     * @param labels
+     */
     public LabelSequence(int[] labels) {
         this.labels = labels;
     }
 
-    public int getOrder() {
+    public int getLength() {
         return labels.length;
     }
     
+    /**
+     * Creates the prefix of the label sequence by truncating the first (last in position) label.
+     * @return
+     */
     public LabelSequence createPrefix() {
         return new LabelSequence(Arrays.copyOfRange(labels, 1, labels.length));
     }
     
+    @Override
     public int compareTo(LabelSequence that) {
         for (int i = 0; i < Math.min(this.labels.length, that.labels.length); ++i) {
             if (labels[i] != that.labels[i]) {
@@ -52,6 +65,11 @@ public class LabelSequence implements Comparable<LabelSequence>, Serializable {
         return 0;
     }
     
+    /**
+     * Compares the label sequence with the argument and returns the first different label. 
+     * @param that
+     * @return
+     */
     public int getDifferencePosition(LabelSequence that) {
         int minLength = Math.min(this.labels.length, that.labels.length);
         for (int i = 0; i < minLength; ++i) {
@@ -79,6 +97,10 @@ public class LabelSequence implements Comparable<LabelSequence>, Serializable {
         return Arrays.hashCode(labels);
     }
     
+    /**
+     * Creates an empty (of length 0) label sequence.
+     * @return
+     */
     public static LabelSequence createEmptyLabelSequence() {
         return new LabelSequence(new int[0]);
     }

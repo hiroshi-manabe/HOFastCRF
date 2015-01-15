@@ -27,7 +27,13 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
- * Class for a data sequence
+ * The class for a data sequence.
+ * A data sequence is represented as a list (one for each position) of lists of
+ * feature templates that are activated at that position.
+ * 
+ * A data sequence can be generated from a raw data sequence and a feature template generator.
+ * A data sequence can in turn generate a pattern set sequence, which is used for the real computation.
+ * 
  * @author Hiroshi Manabe
  */
 public class DataSequence {
@@ -58,21 +64,9 @@ public class DataSequence {
     }
 
     /**
-     * @return if the labels match the label sequence or not
-     */
-    public boolean matches(int[] labels, int pos) {
-        if (pos < labels.length || pos >= this.labels.length) {
-            return false;
-        }
-        for (int i = 0; i < labels.length; ++i) {
-            if (this.labels[pos - i] != labels[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
+     * Returns the reversed label sequence starting from a given position.
+     * @param pos 
+     * @param length
      * @return reversed label sequence starting from the position
      */
     public LabelSequence getLabelSequence(int pos, int length) {
@@ -89,7 +83,11 @@ public class DataSequence {
         return new LabelSequence(labels);
     }
     
-    public void accumulateFeatureCountsToMap(Map<Feature, Integer> arg) {
+    /**
+     * Accumulates counts of the features in this data sequence to the given map.
+     * @param featureCountMap
+     */
+    public void accumulateFeatureCountsToMap(Map<Feature, Integer> featureCountMap) {
         if (!hasValidLabels) {
             return;
         }
@@ -99,14 +97,19 @@ public class DataSequence {
                     continue;
                 }
                 Feature f = new Feature(featureTemplate.getObservation(), getLabelSequence(pos, featureTemplate.getOrder()));
-                if (!arg.containsKey(f)) {
-                    arg.put(f, 0);
+                if (!featureCountMap.containsKey(f)) {
+                    featureCountMap.put(f, 0);
                 }
-                arg.put(f, arg.get(f) + 1);
+                featureCountMap.put(f, featureCountMap.get(f) + 1);
             }
         }
     }
     
+    /**
+     * Generates a PatternSetSequence for this sequence.
+     * @param featureTemplateToFeatureMap
+     * @return the resulting PatternSetSequence
+     */
     public PatternSetSequence generatePatternSetSequence(Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap) {
         List<SortedMap<LabelSequence, Pattern>> mapList = new ArrayList<SortedMap<LabelSequence, Pattern>>();
         LabelSequence emptyLabelSequence = LabelSequence.createEmptyLabelSequence();
@@ -115,7 +118,7 @@ public class DataSequence {
             List<FeatureTemplate> curFeatureTemplateList = featureTemplateListList.get(pos);
             mapList.add(new TreeMap<LabelSequence, Pattern>());
             SortedMap<LabelSequence, Pattern> curMap = mapList.get(pos);
-            Pattern emptyPattern = new Pattern();
+            Pattern emptyPattern = new Pattern(LabelSequence.createEmptyLabelSequence());
             curMap.put(emptyLabelSequence, emptyPattern);
             
             for (FeatureTemplate template : curFeatureTemplateList) {
@@ -125,30 +128,31 @@ public class DataSequence {
                 List<Feature> featureList = featureTemplateToFeatureMap.get(template);
                 for (Feature feature : featureList) {
                     LabelSequence seq = feature.getLabelSequence();
-                    
                     if (!curMap.containsKey(seq)) {
-                        curMap.put(seq, new Pattern());
+                        curMap.put(seq, new Pattern(seq));
                     }
                     Pattern pat = curMap.get(seq);
                     pat.featureList.add(feature);
+
                     if (pos == 0) {
                         pat.prevPattern = Pattern.DUMMY_PATTERN;
                     } else {
-                        int order = seq.getOrder();
+                        int order = seq.getLength();
+                        SortedMap<LabelSequence, Pattern> tempMap = mapList.get(pos);
                         for (int i = 1; i <= order; ++i) {
                             SortedMap<LabelSequence, Pattern> prevMap = mapList.get(pos - i);  
                             LabelSequence prefix = seq.createPrefix();
 
                             boolean prevMapContainsKey = prevMap.containsKey(prefix);  
                             if (!prevMapContainsKey) {
-                                prevMap.put(prefix, new Pattern());
+                                prevMap.put(prefix, new Pattern(prefix));
                             }
-                            curMap.get(seq).prevPattern = prevMap.get(prefix);
+                            tempMap.get(seq).prevPattern = prevMap.get(prefix);
                             if (prevMapContainsKey) {
                                 break;
                             }
                             seq = prefix;
-                            curMap = prevMap;
+                            tempMap = prevMap;
                         }
                     }
                 }
@@ -172,10 +176,10 @@ public class DataSequence {
                 }
                 int diffPos = curLabelSequence.getDifferencePosition(prevLabelSequence);
                 curPattern.longestSuffixPattern = longestSuffixCandidateList.get(diffPos);
-                for (int i = diffPos + 1; i < curLabelSequence.getOrder(); ++i) {
+                for (int i = diffPos + 1; i < curLabelSequence.getLength(); ++i) {
                     longestSuffixCandidateList.set(i, longestSuffixCandidateList.get(diffPos));
                 }
-                longestSuffixCandidateList.set(curLabelSequence.getOrder(), curPattern);
+                longestSuffixCandidateList.set(curLabelSequence.getLength(), curPattern);
                 prevLabelSequence = curLabelSequence;
             }
             

@@ -26,16 +26,27 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * The class for a data set.
+ * A data set is simply a list of data sequences.
+ * 
  * @author Hiroshi Manabe
  */
 public class DataSet {
 
     List<DataSequence> dataSequenceList;
 
+    /**
+     * Constructor. 
+     * @param dataSequenceList
+     */
     public DataSet(List<DataSequence> dataSequenceList) {
         this.dataSequenceList = dataSequenceList;
     }
     
+    /**
+     * Generates a map having the features as keys and the frequency in the data set as values.  
+     * @return the resulting map
+     */
     public Map<Feature, Integer> generateFeatureCountMap() {
         Map<Feature, Integer> featureMap = new HashMap<Feature, Integer>();
         for (DataSequence dataSequence : dataSequenceList) {
@@ -44,10 +55,17 @@ public class DataSet {
         return featureMap;
     }
     
+    /**
+     * Generates a list of PatternSetSequence for this data set.
+     * @param featureTemplateToFeatureMap
+     * @return
+     */
     public List<PatternSetSequence> generatePatternSetSequenceList(Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap) {
         List<PatternSetSequence> list = new ArrayList<PatternSetSequence>();
+        int count = 0;
         for (DataSequence sequence : dataSequenceList) {
             list.add(sequence.generatePatternSetSequence(featureTemplateToFeatureMap));
+            System.out.println("Generated a PatternSetSequence" + count++);
         }
         return list;
     }

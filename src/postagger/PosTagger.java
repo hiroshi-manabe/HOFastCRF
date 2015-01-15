@@ -21,15 +21,17 @@ along with HOFastCRF. If not, see <http://www.gnu.org/licenses/>.
 package postagger;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import hofastcrf.AggregatedFeatureTemplateGenerator;
+import hofastcrf.FeatureTemplateGenerator;
 import hofastcrf.HighOrderFastCRF;
 import hofastcrf.RawDataSequence;
-import hofastcrf.RawDataSet;
+import hofastcrf.Scorer;
 import hofastcrf.UnconditionalFeatureTemplateGenerator;
 import postagger.features.PrefixSuffixFeatureTemplateGenerator;
 import postagger.features.WordRangeFeatureTemplateGenerator;
@@ -37,11 +39,22 @@ import postagger.features.WordRangeFeatureTemplateGenerator;
 public class PosTagger {
 
     HighOrderFastCRF<String> highOrderCrfModel; // High-order CRF model
+    FeatureTemplateGenerator<String> featureGenerator;
 
     public PosTagger() {
+        AggregatedFeatureTemplateGenerator<String> gen = new AggregatedFeatureTemplateGenerator<String>();
+        
+        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<String>(2));
+        gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(0, 0, 2));
+        gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(-1, -1, 3));
+        gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(+1, +1, 1));
+        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(true, 1, 2));
+        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(false, 1, 2));
+        
+        this.featureGenerator = gen;
     }
 
-    public RawDataSet<String> readData(String filename, boolean hasValidLabels) throws IOException {
+    public List<RawDataSequence<String>> readData(String filename, boolean hasValidLabels) throws IOException {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
         List<RawDataSequence<String>> rawDataSequenceList = new ArrayList<RawDataSequence<String>>();
@@ -57,16 +70,16 @@ public class PosTagger {
                 labelList = new ArrayList<String>();
                 continue;
             }
-            String[] elements = line.split("\t", -1);
+            String[] elements = line.split(" ", -1);
             if (elements.length < 2) {
                 continue;
             }
-            labelList.add(elements[0]);
-            observationList.add(elements[1]);
+            observationList.add(elements[0]);
+            labelList.add(elements[1]);
         }
 
         in.close();
-        return new RawDataSet<String>(rawDataSequenceList);
+        return rawDataSequenceList;
     }
     
     public void train() throws Exception {
@@ -75,45 +88,41 @@ public class PosTagger {
         String trainFilename = "train.txt";
         
         // Read training data and save the label map
-        RawDataSet<String> trainData = readData(trainFilename, true);
-        
-        AggregatedFeatureTemplateGenerator<String> gen = new AggregatedFeatureTemplateGenerator<String>();
-        
-        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<String>(2));
-        gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(0, 0, 2));
-        gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(-1, -1, 3));
-        gen.addFeatureTemplateGenerator(new WordRangeFeatureTemplateGenerator(+1, +1, 1));
-        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(true, 1, 2));
-        gen.addFeatureTemplateGenerator(new PrefixSuffixFeatureTemplateGenerator(false, 1, 2));
-        
+        List<RawDataSequence<String>> trainDataSequenceList = readData(trainFilename, true);
+                
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF<String>();
-        highOrderCrfModel.train(trainData, gen, 3, 1000, 1, 1.0, 0.001);
+        highOrderCrfModel.train(trainDataSequenceList, featureGenerator, 3, 1000, 1, false, 1.0, 0.001);
+        
+        highOrderCrfModel.write("learntModels/crfmodel");
     }
 
     public void test() throws Exception {
-        // Read label map, features, and CRF model
-//        labelmap.read("learntModels/fold" + trainFold + "/labelmap");
-//        highOrderCrfModel = new HighOrderFastCRF(featureGen);
-//        highOrderCrfModel.read("learntModels/fold" + trainFold + "/crf");
-
+        
+        // Read the model
+        HighOrderFastCRF<String> highOrderCRFModel = new HighOrderFastCRF<String>();
+        highOrderCRFModel.read("learntModels/crfmodel");
+        
         // Run Viterbi algorithm
-//        System.out.print("Running Viterbi...");
-//        String testFilename = "letter.data";
-//        long startTime = System.currentTimeMillis();
-//        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
-//
-//        // Print out the predicted data and score
-//        File dir = new File("out/");
-//        dir.mkdirs();
-//
-//        // Score the result
-//        System.out.println("Scoring results...");
-//        startTime = System.currentTimeMillis();
-//        DataSet trueTestData = readTagged(testFilename, trainFold, false);
-//        Scorer scr = new Scorer(trueTestData.getSeqList(), testData.getSeqList(), labelmap, false);
-//        scr.tokenScore();
-//        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
+        System.out.print("Running Viterbi...");
+        String testFilename = "test.txt";
+        List<RawDataSequence<String>> testDataSequenceList = readData(testFilename, false);
+        String[][] trueLabels = highOrderCRFModel.extractLabels(testDataSequenceList);
+        
+        long startTime = System.currentTimeMillis();
+        String[][] predictedLabels = highOrderCRFModel.decode(testDataSequenceList, featureGenerator, 4);
+        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
+
+        // Print out the predicted data and score
+        File dir = new File("out/");
+        dir.mkdirs();
+
+        // Score the result
+        System.out.println("Scoring results...");
+        startTime = System.currentTimeMillis();
+        Scorer scr = new Scorer(trueLabels, predictedLabels, false);
+        scr.tokenScore();
+        System.out.println("done in " + (System.currentTimeMillis() - startTime) + " ms");
     }
 
     public static void main(String argv[]) throws Exception {

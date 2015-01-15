@@ -23,12 +23,18 @@ package hofastcrf;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A class that represents a label pattern in the lattice of the high-order CRF.
+ * This class has both members for training and members for decoding (thus leaving room for optimization).
+ * @author Hiroshi Manabe
+ */
 public class Pattern {
-    
     List<Feature> featureList = new ArrayList<Feature>();
     Pattern prevPattern;
     Pattern longestSuffixPattern;
-    Pattern bestNextPattern;  // for decoding
+    Pattern bestPrefixPattern;  // for decoding
+    Pattern bestPrevPattern;  // for decoding
+    LabelSequence labelSequence;  // for decoding
     double weight;
     double alpha;
     double beta;
@@ -36,19 +42,25 @@ public class Pattern {
     double delta;
     double theta;
     double sigma;
-    double bestScore; // for decoding;
+    double bestScore;  // for decoding
+    double bestScoreForLabel;  // for decoding
     
-    public Pattern() {
+    /**
+     * Constructor.
+     * @param labelSequence
+     */
+    public Pattern(LabelSequence labelSequence) {
         prevPattern = DUMMY_PATTERN;
         longestSuffixPattern = DUMMY_PATTERN;
-        bestNextPattern = DUMMY_PATTERN;
+        bestPrefixPattern = DUMMY_PATTERN;
         bestScore = 0.0;
         weight = 1.0;
+        this.labelSequence = labelSequence;
     }
     
     static final Pattern DUMMY_PATTERN;
     static {
-        DUMMY_PATTERN = new Pattern();
+        DUMMY_PATTERN = new Pattern(new LabelSequence(new int[0]));
         DUMMY_PATTERN.gamma = 1.0;
     }
 }

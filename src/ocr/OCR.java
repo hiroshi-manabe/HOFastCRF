@@ -33,7 +33,6 @@ import hofastcrf.AggregatedFeatureTemplateGenerator;
 import hofastcrf.FeatureTemplateGenerator;
 import hofastcrf.HighOrderFastCRF;
 import hofastcrf.RawDataSequence;
-import hofastcrf.RawDataSet;
 import hofastcrf.Scorer;
 import hofastcrf.UnconditionalFeatureTemplateGenerator;
 
@@ -45,15 +44,13 @@ import hofastcrf.UnconditionalFeatureTemplateGenerator;
 public class OCR {
 
     int trainFold = 0;
-    String configFile; // Configuration filename
     FeatureTemplateGenerator<CharDetails> generator;
 
     public OCR(String filename, String fold) {
-        configFile = filename;
         trainFold = Integer.parseInt(fold);
         AggregatedFeatureTemplateGenerator<CharDetails> gen = new AggregatedFeatureTemplateGenerator<CharDetails>();
         gen.addFeatureTemplateGenerator(new OCRFeatureTemplateGenerator());
-        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<CharDetails>(3));
+        gen.addFeatureTemplateGenerator(new UnconditionalFeatureTemplateGenerator<CharDetails>(4));
         generator = gen; 
     }
 
@@ -113,11 +110,11 @@ public class OCR {
         dir.mkdirs();
         
         // Read training data and save the label map
-        RawDataSet<CharDetails> trainData = new RawDataSet<CharDetails>(readTagged(trainFilename, trainFold, true));
+        List<RawDataSequence<CharDetails>> trainDataSequenceList = readTagged(trainFilename, trainFold, true);
         
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF<CharDetails>();
-        highOrderCrfModel.train(trainData, generator, 3, 1000, 4, 1.0, 0.001);
+        highOrderCrfModel.train(trainDataSequenceList, generator, 4, 1000, 4, true, 1.0, 0.00001);
         highOrderCrfModel.write("learntModels/fold" + trainFold + "/crfmodel");
     }
 

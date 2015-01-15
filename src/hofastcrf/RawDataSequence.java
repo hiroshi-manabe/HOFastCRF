@@ -27,6 +27,7 @@ import java.util.Map;
 /**
  * Class for a raw data sequence
  * @author Hiroshi Manabe
+ * @param <T> The class of the observations
  */
 public class RawDataSequence<T> {
     
@@ -46,21 +47,24 @@ public class RawDataSequence<T> {
         this.hasValidLabels = hasValidLabels;
     }
     
-    public List<T> getRawObservationList() {
-        return rawObservationList;
-    }
-    
     public List<String> getRawLabelList() {
         return rawLabelList;
     }
     
-    public DataSequence convertToDataSequence(FeatureTemplateGenerator<T> featureTemplateGenerator, Map<String, Integer> labelMap, int maxOrder) {
+    /**
+     * Generates the processed data sequence (which is a list of lists of feature templates) from the feature template generator.
+     * @param featureTemplateGenerator
+     * @param labelMap
+     * @param maxLabelLength the maximum label length of the features.
+     * @return
+     */
+    public DataSequence generateDataSequence(FeatureTemplateGenerator<T> featureTemplateGenerator, Map<String, Integer> labelMap, int maxLabelLength) {
         List<List<FeatureTemplate>> featureTemplateListList = new ArrayList<List<FeatureTemplate>>();
         int[] labels = new int[rawObservationList.size()];
         for (int pos = 0; pos < rawObservationList.size(); ++pos) {
             featureTemplateListList.add(featureTemplateGenerator.generateFeatureTemplatesAt(rawObservationList, pos));
             labels[pos] = hasValidLabels ? labelMap.get(rawLabelList.get(pos)) : 0;
         }
-        return new DataSequence(featureTemplateListList, labels, maxOrder, hasValidLabels);
+        return new DataSequence(featureTemplateListList, labels, maxLabelLength, hasValidLabels);
     }
 }

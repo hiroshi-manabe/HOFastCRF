@@ -25,14 +25,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class that represents a raw data set (set of raw data sequences).
+ * @author Hiroshi Manabe
+ * @param <T> The class of the observations
+ */
 public class RawDataSet<T> {
     
     List<RawDataSequence<T>> rawDataSequenceList;
     
+    /**
+     * Constructor.
+     * @param rawDataSequenceList
+     */
     public RawDataSet(List<RawDataSequence<T>> rawDataSequenceList) {
         this.rawDataSequenceList = rawDataSequenceList;
     }
     
+    /**
+     * Generates the map that associates the string keys with the integer representations.  
+     * @return
+     */
     public Map<String, Integer> generateLabelMap() {
         Map<String, Integer> labelMap = new HashMap<String, Integer>();
         for (RawDataSequence<T> seq : rawDataSequenceList) {
@@ -46,10 +59,17 @@ public class RawDataSet<T> {
         return labelMap;
     }
     
+    /**
+     * Generates the processed data set using the feature template generator.
+     * @param featureTemplateGenerator
+     * @param labelMap
+     * @param maxOrder
+     * @return
+     */
     public DataSet generateDataSet(FeatureTemplateGenerator<T> featureTemplateGenerator, Map<String, Integer> labelMap, int maxOrder) {
         List<DataSequence> dataSequenceList = new ArrayList<DataSequence>();
         for (RawDataSequence<T> rawDataSequence : rawDataSequenceList) {
-            dataSequenceList.add(rawDataSequence.convertToDataSequence(featureTemplateGenerator, labelMap, maxOrder));
+            dataSequenceList.add(rawDataSequence.generateDataSequence(featureTemplateGenerator, labelMap, maxOrder));
         }
         return new DataSet(dataSequenceList);
     }

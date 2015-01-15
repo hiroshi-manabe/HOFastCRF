@@ -22,6 +22,17 @@ package hofastcrf;
 
 import java.util.List;
 
+/**
+ * The class for the feature template generators.
+ * @author Hiroshi Manabe
+ * @param <T> the class for the observations.
+ */
 public abstract class FeatureTemplateGenerator<T> {
-    public abstract List<FeatureTemplate> generateFeatureTemplatesAt(List<T> rawObjectList, int pos);
+    /**
+     * Generates feature templates for a specific position.
+     * @param rawObservationList the whole list of the observations
+     * @param pos the position
+     * @return
+     */
+    public abstract List<FeatureTemplate> generateFeatureTemplatesAt(List<T> rawObservationList, int pos);
 }

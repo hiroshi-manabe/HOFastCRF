@@ -23,6 +23,14 @@ package hofastcrf;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The class to aggregate feature template generators.
+ * An aggregated feature template generator can be used as a feature template generator itself.
+ * 
+ * @author Hiroshi Manabe
+ *
+ * @param <T> feature template generator type
+ */
 public class AggregatedFeatureTemplateGenerator<T> extends
         FeatureTemplateGenerator<T> {
     
@@ -38,6 +46,10 @@ public class AggregatedFeatureTemplateGenerator<T> extends
         return templateList;
     }
     
+    /**
+     * Adds the argument to the generator list.
+     * @param generator
+     */
     public void addFeatureTemplateGenerator(FeatureTemplateGenerator<T> generator) {
         generatorList.add(generator);
     }

@@ -20,10 +20,18 @@ along with HOFastCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package hofastcrf;
 
+/**
+ * The class for recording the log likelihood.
+ * @author Hiroshi Manabe
+ */
 public class LogLikelihood {
     
     private double logLikelihood;
-    
+
+    /**
+     * Constructor.
+     * @param logLikelihood
+     */
     LogLikelihood(double logLikelihood) {
         this.logLikelihood = logLikelihood;
     }

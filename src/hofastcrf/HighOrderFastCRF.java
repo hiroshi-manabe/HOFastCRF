@@ -38,18 +38,30 @@ import parallel.Scheduler;
 import edu.stanford.nlp.optimization.QNMinimizer;
 
 /**
- * High-order Fast CRF class
+ * The main class for the high-order Fast CRF.
  * @author Hiroshi Manabe
  */
 public class HighOrderFastCRF<T> {
 
     private HighOrderCRFData modelData;
     
-    public void train(RawDataSet<T> rawDataSet, FeatureTemplateGenerator<T> featureTemplateGenerator,
-            int maxOrder, int maxIters, int concurrency,
-            double inverseSigmaSquared, double epsilonForConvergence) {
+    /**
+     * Executes the training.
+     * @param rawDataSequenceList the list of the raw observations
+     * @param featureTemplateGenerator the feature template generator that generate feature templates from the raw observations
+     * @param maxLabelLength the maximum length of the feature labels
+     * @param maxIters the maximum iteration counts
+     * @param concurrency
+     * @param useL1Regularization true if use the L1 regularization, false if use the L2 regularization
+     * @param regularizationCoefficient regularization coefficient (either for L1 or L2)
+     * @param epsilonForConvergence
+     */
+    public void train(List<RawDataSequence<T>> rawDataSequenceList, FeatureTemplateGenerator<T> featureTemplateGenerator,
+            int maxLabelLength, int maxIters, int concurrency,
+            boolean useL1Regularization, double regularizationCoefficient, double epsilonForConvergence) {
+        RawDataSet<T> rawDataSet = new RawDataSet<T>(rawDataSequenceList);
         Map<String, Integer> labelMap = rawDataSet.generateLabelMap();
-        DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap, maxOrder);
+        DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap, maxLabelLength);
         Map<Feature, Integer> featureCountMap = dataSet.generateFeatureCountMap();
         Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap = new HashMap<FeatureTemplate, List<Feature>>();
         
@@ -73,18 +85,31 @@ public class HighOrderFastCRF<T> {
         List<PatternSetSequence> patternSetSequenceList = dataSet.generatePatternSetSequenceList(featureTemplateToFeatureMap);
         
         QNMinimizer qn = new QNMinimizer();
-        Function df = new Function(patternSetSequenceList, featureList, featureCountArray, concurrency, inverseSigmaSquared);
+        if (useL1Regularization) {
+            qn.useOWLQN(true, regularizationCoefficient);
+            regularizationCoefficient = 0.0;
+        }
+        
+        Function df = new Function(patternSetSequenceList, featureList, featureCountArray, concurrency, regularizationCoefficient);
         double[] lambda = new double[featureList.size()];
         lambda = qn.minimize(df, epsilonForConvergence, lambda, maxIters);
+        
+        List<Feature> featureListToSave = new ArrayList<Feature>();
         for (int i = 0; i < lambda.length; ++i) {
-            featureList.get(i).reset(lambda[i]);
+            Feature feature = featureList.get(i);
+            if (lambda[i] != 0.0 || (feature.obs.isEmpty() && feature.pat.getLength() == 1)) {
+                feature.reset(lambda[i]);
+                featureListToSave.add(feature);
+            } else {
+                feature.reset(lambda[i]);
+            }
         }
-        modelData = new HighOrderCRFData(featureList, labelMap);
+        modelData = new HighOrderCRFData(featureListToSave, labelMap);
     }
 
     public String[][] decode(List<RawDataSequence<T>> rawData, FeatureTemplateGenerator<T> featureTemplateGenerator,
             int concurrency) throws InterruptedException {
-        Viterbi<T> viterbi = new Viterbi<T>(rawData, featureTemplateGenerator, modelData.getFeatureList(),
+        Decoder<T> viterbi = new Decoder<T>(rawData, featureTemplateGenerator, modelData.getFeatureList(),
                 modelData.getLabelMap());
         Scheduler sch = new Scheduler(viterbi, 1, Scheduler.DYNAMIC_NEXT_AVAILABLE);
         sch.run();

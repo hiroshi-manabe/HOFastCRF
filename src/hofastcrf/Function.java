@@ -26,6 +26,10 @@ import java.util.List;
 import parallel.Scheduler;
 import edu.stanford.nlp.optimization.DiffFunction;
 
+/**
+ * The class that estimates the feature weights.
+ * @author Hiroshi Manabe
+ */
 public class Function implements DiffFunction {
 
     List<PatternSetSequence> patternSetSequence;
@@ -33,17 +37,25 @@ public class Function implements DiffFunction {
     int[] featureCountArray;
     double[] resultArray;
     int concurrency;
-    double inverseSigmaSquared;
+    double regularizationCoefficientL2;
     double logl;
     double[] lambdaCache;
-
+    
+    /**
+     * Constructor.
+     * @param patternSetSequence
+     * @param featureList
+     * @param featureCountArray the counts of the features observed in the training set 
+     * @param concurrency
+     * @param regularizationCoefficientL2 set this parameter to 0.0 when using the L1 optimization
+     */
     public Function(List<PatternSetSequence> patternSetSequence, List<Feature> featureList, int[] featureCountArray,
-            int concurrency, double invertedSigmaSquared) {
+            int concurrency, double regularizationCoefficientL2) {
         this.patternSetSequence = patternSetSequence;
         this.featureList = featureList;
         this.featureCountArray = featureCountArray;
         this.concurrency = concurrency;
-        this.inverseSigmaSquared = invertedSigmaSquared;
+        this.regularizationCoefficientL2 = regularizationCoefficientL2;
         this.logl = 0.0;
         this.resultArray = new double[featureList.size()];
         this.lambdaCache = null;
@@ -70,7 +82,11 @@ public class Function implements DiffFunction {
             return resultArray;
         }
     }    
-
+    
+    /**
+     * Executes the real computation and updates the feature expectations and the log likelihood.
+     * @param lambda
+     */
     public void computeValueAndDerivatives(double[] lambda) {
         for (int i = 0; i < lambda.length; ++i) {
             featureList.get(i).reset(lambda[i]);
@@ -79,8 +95,13 @@ public class Function implements DiffFunction {
         for (int i = 0; i < lambda.length; i++) {
             Feature f = featureList.get(i);
             f.addExpectation(featureCountArray[i]);
-            logLikelihood.addLogLikelihood(-((lambda[i] * lambda[i]) * inverseSigmaSquared) / 2);
-            f.addExpectation(-lambda[i] * inverseSigmaSquared);
+        }
+        if (regularizationCoefficientL2 != 0.0) {
+            for (int i = 0; i < lambda.length; i++) {
+                Feature f = featureList.get(i);
+                logLikelihood.addLogLikelihood(-((lambda[i] * lambda[i]) * regularizationCoefficientL2) / 2);
+                f.addExpectation(-lambda[i] * regularizationCoefficientL2);
+            }
         }
         LogLikelihoodComputer logLikelihoodComputer = new LogLikelihoodComputer(patternSetSequence, logLikelihood);
         Scheduler sch = new Scheduler(logLikelihoodComputer, concurrency, Scheduler.DYNAMIC_NEXT_AVAILABLE);
@@ -90,12 +111,17 @@ public class Function implements DiffFunction {
             System.out.println("Errors occur when training in parallel! " + e);
         }
         logl = logLikelihood.getLogLikelihood();
-
+        
         for (int i = 0; i < lambda.length; ++i) { 
             resultArray[i] = featureList.get(i).expectation;
-            resultArray[i] -= lambda[i] * inverseSigmaSquared;
-            logl += inverseSigmaSquared * lambda[i] * lambda[i] * 0.5;
         }
+        if (regularizationCoefficientL2 != 0.0) {
+            for (int i = 0; i < lambda.length; ++i) { 
+                resultArray[i] -= lambda[i] * regularizationCoefficientL2;
+                logl += regularizationCoefficientL2 * lambda[i] * lambda[i] * 0.5;
+            }
+        }
+        
         for (int i = 0; i < lambda.length; ++i) { 
             resultArray[i] = -resultArray[i];
         }

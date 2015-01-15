@@ -34,6 +34,11 @@ public class Feature implements Serializable {
     double expWeight;
     transient double expectation;
 
+    /**
+     * Constructor.
+     * @param obs observation part
+     * @param pat label sequence part
+     */
     public Feature(String obs, LabelSequence pat) {
         this.obs = obs;
         this.pat = pat;
@@ -41,6 +46,10 @@ public class Feature implements Serializable {
         this.expectation = 0.0;
     }
     
+    /**
+     * Adds the given expectation to the feature.
+     * @param expectation
+     */
     public synchronized void addExpectation(double expectation) {
         this.expectation += expectation;
     }
@@ -49,11 +58,19 @@ public class Feature implements Serializable {
         return expectation;
     }
     
+    /**
+     * Resets the expectation and initialize the weight with the argument.
+     * @param weight
+     */
     public void reset(double weight) {
         expWeight = Math.exp(weight);
         expectation = 0.0;
     }
     
+    /**
+     * Gets the exponential weight.
+     * @return
+     */
     public double getExpWeight() {
         return expWeight;
     }
@@ -62,8 +79,12 @@ public class Feature implements Serializable {
         return pat;
     }
     
+    /**
+     * Creates a feature template, ignoring labels and just keeping the order. 
+     * @return
+     */
     public FeatureTemplate createFeatureTemplate() {
-        return new FeatureTemplate(obs, pat.getOrder());
+        return new FeatureTemplate(obs, pat.getLength());
     }
     
     @Override

@@ -20,16 +20,31 @@ along with HOFastCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package hofastcrf;
 
+/**
+ * The feature template class.
+ * Feature templates have only the order and don't have the concrete labels.
+ * @author Hiroshi Manabe
+ */
 public class FeatureTemplate {
     
     String obs;
     int order;
     
+    /**
+     * Constructor.
+     * @param obs observation
+     * @param order
+     */
     public FeatureTemplate(String obs, int order) {
         this.obs = obs;
         this.order = order;
     }
     
+    /**
+     * Generates a feature by applying a label sequence.
+     * @param seq the label sequence
+     * @return
+     */
     public Feature GenerateFeature(LabelSequence seq) {
         return new Feature(this.obs, seq);
     }

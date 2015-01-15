@@ -23,20 +23,29 @@ package hofastcrf;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A feature template generator that generates feature templates for any observations.
+ * @author Hiroshi Manabe
+ * @param <T> the class for the observations
+ */
 public class UnconditionalFeatureTemplateGenerator<T> extends FeatureTemplateGenerator<T> {
     
-    private final int maxOrder;
+    private final int maxLabelLength;
     
-    public UnconditionalFeatureTemplateGenerator(int maxOrder) {
-        this.maxOrder = maxOrder;
+    /**
+     * Constructor
+     * @param maxLabelLength
+     */
+    public UnconditionalFeatureTemplateGenerator(int maxLabelLength) {
+        this.maxLabelLength = maxLabelLength;
     }
     
     @Override
     public List<FeatureTemplate> generateFeatureTemplatesAt(
             List<T> rawObjectList, int pos) {
         List<FeatureTemplate> templateList = new ArrayList<FeatureTemplate>();
-        for (int i = 1; i <= Math.min(maxOrder, pos + 1); ++i) {
-            templateList.add(new FeatureTemplate("LABEL", i));
+        for (int i = 1; i <= Math.min(maxLabelLength, pos + 1); ++i) {
+            templateList.add(new FeatureTemplate("", i));
         }
         return templateList;
     }
