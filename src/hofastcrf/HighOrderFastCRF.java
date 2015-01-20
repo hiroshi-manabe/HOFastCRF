@@ -22,13 +22,16 @@ package hofastcrf;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,10 +58,11 @@ public class HighOrderFastCRF<T> {
      * @param useL1Regularization true if use the L1 regularization, false if use the L2 regularization
      * @param regularizationCoefficient regularization coefficient (either for L1 or L2)
      * @param epsilonForConvergence
+     * @throws IOException 
      */
     public void train(List<RawDataSequence<T>> rawDataSequenceList, FeatureTemplateGenerator<T> featureTemplateGenerator,
             int maxLabelLength, int maxIters, int concurrency,
-            boolean useL1Regularization, double regularizationCoefficient, double epsilonForConvergence) {
+            boolean useL1Regularization, double regularizationCoefficient, double epsilonForConvergence) throws IOException {
         RawDataSet<T> rawDataSet = new RawDataSet<T>(rawDataSequenceList);
         Map<String, Integer> labelMap = rawDataSet.generateLabelMap();
         DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap, maxLabelLength);
@@ -81,6 +85,7 @@ public class HighOrderFastCRF<T> {
             featureTemplateToFeatureMap.get(ft).add(f);
             ++count;
         }
+        dumpFeatures("features.txt", featureList, labelMap);
         
         List<PatternSetSequence> patternSetSequenceList = dataSet.generatePatternSetSequenceList(featureTemplateToFeatureMap);
         
@@ -123,6 +128,24 @@ public class HighOrderFastCRF<T> {
             ret[i] = labelList.toArray(new String[labelList.size()]);
         }
         return ret;
+    }
+    
+    public void dumpFeatures(String filename, List<Feature> featureList, Map<String, Integer> labelMap) throws IOException {
+        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
+        Map<Integer, String> reversedMap = new HashMap<Integer, String>();
+        
+        for (Map.Entry<String, Integer> entry : labelMap.entrySet()) {
+            reversedMap.put(entry.getValue(), entry.getKey());
+        }
+        
+        for (Feature feature : featureList) {
+            out.print(feature.obs);
+            for (int label : feature.pat.labels) {
+                out.print("\t" + reversedMap.get(label));
+            }
+            out.println();
+        }
+        out.close();
     }
 
     public void write(String filename) throws IOException {

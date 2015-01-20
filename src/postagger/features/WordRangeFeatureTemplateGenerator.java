@@ -28,15 +28,15 @@ import hofastcrf.FeatureTemplateGenerator;
 
 public class WordRangeFeatureTemplateGenerator extends
         FeatureTemplateGenerator<String> {
-    private final int maxOrder;
+    private final int maxLabelLength;
     private final int startPos;
     private final int endPos;
     private final String tag;
     
-    public WordRangeFeatureTemplateGenerator(int startPos, int endPos, int maxOrder) {
+    public WordRangeFeatureTemplateGenerator(int startPos, int endPos, int maxLabelLength) {
         this.startPos = startPos;
         this.endPos = endPos;
-        this.maxOrder = maxOrder;
+        this.maxLabelLength = maxLabelLength;
         StringBuilder b = new StringBuilder("W");
         for (int i = startPos; i <= endPos; ++i) {
             b.append(String.format("%+d", i));
@@ -60,8 +60,9 @@ public class WordRangeFeatureTemplateGenerator extends
         String attr = b.toString();
         
         List<FeatureTemplate> ret = new ArrayList<FeatureTemplate>();
-        for (int order = 1; order <= maxOrder; ++order) {
-            ret.add(new FeatureTemplate(attr, order));
+        
+        for (int labelLength = 1; labelLength <= Math.min(maxLabelLength, pos + 1); ++labelLength) {
+            ret.add(new FeatureTemplate(attr, labelLength));
         }
         return ret;
     }

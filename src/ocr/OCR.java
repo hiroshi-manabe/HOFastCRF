@@ -101,7 +101,6 @@ public class OCR {
     }
     
     public void train() throws IOException {
-    
         HighOrderFastCRF<CharDetails> highOrderCrfModel; // High-order CRF model
         
         // Set training file name and create output directory
@@ -114,18 +113,17 @@ public class OCR {
         
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF<CharDetails>();
-        highOrderCrfModel.train(trainDataSequenceList, generator, 4, 1000, 4, true, 1.0, 0.00001);
+        highOrderCrfModel.train(trainDataSequenceList, generator, 4, 1000, 4, true, 1.0, 0.001);
         highOrderCrfModel.write("learntModels/fold" + trainFold + "/crfmodel");
     }
 
     public void test() throws IOException, ClassNotFoundException, InterruptedException {
-        
         // Read the model
         HighOrderFastCRF<CharDetails> highOrderCRFModel = new HighOrderFastCRF<CharDetails>();
         highOrderCRFModel.read("learntModels/fold" + trainFold + "/crfmodel");
         
-        // Run Viterbi algorithm
-        System.out.print("Running Viterbi...");
+        // Infer labels
+        System.out.print("Inferring labels...");
         String testFilename = "letter.data";
         List<RawDataSequence<CharDetails>> testData = readTagged(testFilename, trainFold, false);
         String[][] trueLabels = highOrderCRFModel.extractLabels(testData);

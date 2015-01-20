@@ -82,7 +82,7 @@ public class PosTagger {
         return rawDataSequenceList;
     }
     
-    public void train() throws Exception {
+    public void train() throws IOException {
     
         // Set training file name and create output directory
         String trainFilename = "train.txt";
@@ -92,19 +92,19 @@ public class PosTagger {
                 
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF<String>();
-        highOrderCrfModel.train(trainDataSequenceList, featureGenerator, 3, 1000, 1, false, 1.0, 0.001);
+        highOrderCrfModel.train(trainDataSequenceList, featureGenerator, 3, 1000, 1, true, 0.7, 0.0000001);
         
         highOrderCrfModel.write("learntModels/crfmodel");
     }
 
-    public void test() throws Exception {
+    public void test() throws IOException, ClassNotFoundException, InterruptedException {
         
         // Read the model
         HighOrderFastCRF<String> highOrderCRFModel = new HighOrderFastCRF<String>();
         highOrderCRFModel.read("learntModels/crfmodel");
         
-        // Run Viterbi algorithm
-        System.out.print("Running Viterbi...");
+        // Infer labels
+        System.out.print("Inferring labels...");
         String testFilename = "test.txt";
         List<RawDataSequence<String>> testDataSequenceList = readData(testFilename, false);
         String[][] trueLabels = highOrderCRFModel.extractLabels(testDataSequenceList);

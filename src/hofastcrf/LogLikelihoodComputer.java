@@ -73,6 +73,5 @@ public class LogLikelihoodComputer implements Schedulable {
     public synchronized void update(Object partialResult) {
         LogLikelihood res = (LogLikelihood) partialResult;
         this.logLikelihood.addLogLikelihood(res.getLogLikelihood());
-    }
-    
+    }    
 }

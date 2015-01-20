@@ -64,11 +64,23 @@ public class PatternSetSequence {
     }
     
     /**
-     * Returns the Z (normalization factor).
+     * Returns the significand of the Z (normalization factor).
      * @return
      */
-    double getZ() {
-        return patternSetList.get(0).getZ();
+    double getZSignificand() {
+        return patternSetList.get(patternSetList.size() - 1).getZ();
+    }
+    
+    /**
+     * Returns the exponent of the Z (normalization factor).
+     * @return
+     */
+    int getZExponent() {
+        int exponent = 0;
+        for (PatternSet patternSet : patternSetList) {
+            exponent += patternSet.scale;
+        }
+        return exponent;
     }
     
     /**
@@ -79,13 +91,15 @@ public class PatternSetSequence {
         double ret = 0.0;
         // log probability of the train set labels
         for (PatternSet patternSet : patternSetList) {
-            ret += Math.log(patternSet.longestMatchPattern.weight);
+            ret += Math.log(patternSet.longestMatchPattern.expWeight);
         }
         // log probability of the train set
-        ret -= Math.log(getZ());
+        ret -= Math.log(getZSignificand());
         // scale
-        for (PatternSet patternSet : patternSetList) {
-            ret -= Math.log(2.0)  * patternSet.scale;
+        ret -= Math.log(2.0) * getZExponent();
+        
+        if (Double.isInfinite(ret) || Double.isNaN(ret)) {
+            ret = 0.0;
         }
         return ret;
     }
@@ -122,7 +136,7 @@ public class PatternSetSequence {
                     }
                     --prevPatternSetIndex;
                 }
-                pattern.bestScore = pattern.prevPattern.bestScoreForLabel * pattern.weight;
+                pattern.bestScore = pattern.prevPattern.bestScoreForLabel * pattern.expWeight;
                 pattern.bestPrevPattern = pattern.prevPattern.bestPrefixPattern;
             }
             patternSet.scaleBestScores();

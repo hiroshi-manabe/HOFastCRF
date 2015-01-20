@@ -56,8 +56,9 @@ public class PatternSet {
             pattern.sigma = 0.0;
             pattern.bestScore = 0.0;
             pattern.bestScoreForLabel = 0.0;
-            pattern.weight = 1.0;
+            pattern.expWeight = 1.0;
         }
+        this.scale = 0;
     }
     
     /**
@@ -76,9 +77,9 @@ public class PatternSet {
     void setPatternWeights() {
         for (int i = 1; i < patternList.size(); ++i) {
             Pattern pattern = patternList.get(i);
-            pattern.weight *= pattern.longestSuffixPattern.weight;
+            pattern.expWeight *= pattern.longestSuffixPattern.expWeight;
             for (Feature f : pattern.featureList) {
-                pattern.weight *= f.expWeight;
+                pattern.expWeight *= f.expWeight;
             }
         }
     }
@@ -89,8 +90,8 @@ public class PatternSet {
     void calcAlpha() {
         for (int i = patternList.size() - 1; i >= 1; --i) {
             Pattern pattern = patternList.get(i);
-            pattern.alpha += pattern.prevPattern.gamma * pattern.weight;
-            pattern.longestSuffixPattern.alpha -= pattern.prevPattern.gamma * pattern.weight;
+            pattern.alpha += pattern.prevPattern.gamma * pattern.expWeight;
+            pattern.longestSuffixPattern.alpha -= pattern.prevPattern.gamma * pattern.expWeight;
         }
         scaleAlpha();
     }
@@ -133,7 +134,7 @@ public class PatternSet {
         for (int i = 1; i < patternList.size(); ++i) {
             Pattern pattern = patternList.get(i);
             // delta (backward difference score)
-            pattern.prevPattern.delta += pattern.beta * pattern.weight - pattern.longestSuffixPattern.beta * pattern.weight;
+            pattern.prevPattern.delta += pattern.beta * pattern.expWeight - pattern.longestSuffixPattern.beta * pattern.expWeight;
             // theta (difference expectation)
             pattern.theta = pattern.beta * pattern.alpha;
         }
@@ -159,18 +160,26 @@ public class PatternSet {
         double expScale = Math.pow(2.0, -maxAlphaExponent);
         for (Pattern pattern : patternList) {
             pattern.alpha *= expScale;
-            this.scale = maxAlphaExponent;
         }
+        this.scale += maxAlphaExponent;
     }
     
     /**
-     * Scales the backward scores in order not to over/underflow (reusing the forward scale factors).
+     * Scales the backward scores in order not to over/underflow.
      */
     void scaleBeta() {
-        double expScale = Math.pow(2.0, this.scale);
+        double maxBeta = 0;  
         for (Pattern pattern : patternList) {
-            pattern.beta /= expScale;
+            if (pattern.beta > maxBeta) {
+                maxBeta = pattern.beta;
+            }
         }
+        int maxBetaExponent = (int)((Double.doubleToLongBits(maxBeta) & 0x7ff0000000000000L) >> 52) - 1023;
+        double expScale = Math.pow(2.0, -maxBetaExponent);
+        for (Pattern pattern : patternList) {
+            pattern.beta *= expScale;
+        }
+        this.scale += maxBetaExponent;
     }
     
     /**
@@ -178,7 +187,7 @@ public class PatternSet {
      */
     void setFirstBestScores() {
         for (Pattern pattern : patternList) {
-            pattern.bestScore = pattern.weight;
+            pattern.bestScore = pattern.expWeight;
         }
     }
     
@@ -186,7 +195,8 @@ public class PatternSet {
      * Resets the best scores for a specific label.
      */
     void resetBestScoresForLabel() {
-        for (Pattern pattern : patternList) {
+        for (int i = 1; i < patternList.size(); ++i) {
+            Pattern pattern = patternList.get(i);
             pattern.bestScoreForLabel = pattern.bestScore;
             pattern.bestPrefixPattern = pattern;
         }
