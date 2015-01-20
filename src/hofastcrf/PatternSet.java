@@ -165,21 +165,13 @@ public class PatternSet {
     }
     
     /**
-     * Scales the backward scores in order not to over/underflow.
+     * Scales the backward scores in order not to over/underflow (reusing the forward scale factors).
      */
     void scaleBeta() {
-        double maxBeta = 0;  
+        double expScale = Math.pow(2.0, this.scale);
         for (Pattern pattern : patternList) {
-            if (pattern.beta > maxBeta) {
-                maxBeta = pattern.beta;
-            }
+            pattern.beta /= expScale;
         }
-        int maxBetaExponent = (int)((Double.doubleToLongBits(maxBeta) & 0x7ff0000000000000L) >> 52) - 1023;
-        double expScale = Math.pow(2.0, -maxBetaExponent);
-        for (Pattern pattern : patternList) {
-            pattern.beta *= expScale;
-        }
-        this.scale += maxBetaExponent;
     }
     
     /**

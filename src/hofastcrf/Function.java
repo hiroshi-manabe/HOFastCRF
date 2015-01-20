@@ -32,7 +32,7 @@ import edu.stanford.nlp.optimization.DiffFunction;
  */
 public class Function implements DiffFunction {
 
-    List<PatternSetSequence> patternSetSequence;
+    List<PatternSetSequence> patternSetSequenceList;
     List<Feature> featureList;
     int[] featureCountArray;
     double[] resultArray;
@@ -43,15 +43,15 @@ public class Function implements DiffFunction {
     
     /**
      * Constructor.
-     * @param patternSetSequence
+     * @param patternSetSequenceList
      * @param featureList
      * @param featureCountArray the counts of the features observed in the training set 
      * @param concurrency
      * @param regularizationCoefficientL2 set this parameter to 0.0 when using the L1 optimization
      */
-    public Function(List<PatternSetSequence> patternSetSequence, List<Feature> featureList, int[] featureCountArray,
+    public Function(List<PatternSetSequence> patternSetSequenceList, List<Feature> featureList, int[] featureCountArray,
             int concurrency, double regularizationCoefficientL2) {
-        this.patternSetSequence = patternSetSequence;
+        this.patternSetSequenceList = patternSetSequenceList;
         this.featureList = featureList;
         this.featureCountArray = featureCountArray;
         this.concurrency = concurrency;
@@ -96,6 +96,7 @@ public class Function implements DiffFunction {
             Feature f = featureList.get(i);
             f.addExpectation(featureCountArray[i]);
         }
+        
         if (regularizationCoefficientL2 != 0.0) {
             for (int i = 0; i < lambda.length; i++) {
                 Feature f = featureList.get(i);
@@ -103,7 +104,8 @@ public class Function implements DiffFunction {
                 f.addExpectation(-lambda[i] * regularizationCoefficientL2);
             }
         }
-        LogLikelihoodComputer logLikelihoodComputer = new LogLikelihoodComputer(patternSetSequence, logLikelihood);
+        
+        LogLikelihoodComputer logLikelihoodComputer = new LogLikelihoodComputer(patternSetSequenceList, logLikelihood);
         Scheduler sch = new Scheduler(logLikelihoodComputer, concurrency, Scheduler.DYNAMIC_NEXT_AVAILABLE);
         try {
             sch.run();
@@ -114,12 +116,6 @@ public class Function implements DiffFunction {
         
         for (int i = 0; i < lambda.length; ++i) { 
             resultArray[i] = featureList.get(i).expectation;
-        }
-        if (regularizationCoefficientL2 != 0.0) {
-            for (int i = 0; i < lambda.length; ++i) { 
-                resultArray[i] -= lambda[i] * regularizationCoefficientL2;
-                logl += regularizationCoefficientL2 * lambda[i] * lambda[i] * 0.5;
-            }
         }
         
         for (int i = 0; i < lambda.length; ++i) { 

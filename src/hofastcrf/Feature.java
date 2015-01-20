@@ -42,7 +42,7 @@ public class Feature implements Serializable {
     public Feature(String obs, LabelSequence pat) {
         this.obs = obs;
         this.pat = pat;
-        this.expWeight = 0.0;
+        this.expWeight = 1.0;
         this.expectation = 0.0;
     }
     
@@ -51,7 +51,9 @@ public class Feature implements Serializable {
      * @param expectation
      */
     public synchronized void addExpectation(double expectation) {
-        this.expectation += expectation;
+        if (!(Double.isInfinite(expectation) || Double.isNaN(expectation))) {
+            this.expectation += expectation;
+        }
     }
     
     public double getExpectation() {
@@ -63,16 +65,8 @@ public class Feature implements Serializable {
      * @param weight
      */
     public void reset(double weight) {
-        expWeight = Math.exp(weight);
+        this.expWeight = Math.exp(weight);
         expectation = 0.0;
-    }
-    
-    /**
-     * Gets the exponential weight.
-     * @return
-     */
-    public double getExpWeight() {
-        return expWeight;
     }
     
     public LabelSequence getLabelSequence() {

@@ -35,7 +35,7 @@ public class Pattern {
     Pattern bestPrefixPattern;  // for decoding
     Pattern bestPrevPattern;  // for decoding
     LabelSequence labelSequence;  // for decoding
-    double weight;
+    double expWeight;
     double alpha;
     double beta;
     double gamma;
@@ -54,7 +54,7 @@ public class Pattern {
         longestSuffixPattern = DUMMY_PATTERN;
         bestPrefixPattern = DUMMY_PATTERN;
         bestScore = 0.0;
-        weight = 1.0;
+        expWeight = 1.0;
         this.labelSequence = labelSequence;
     }
     

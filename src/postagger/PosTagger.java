@@ -92,7 +92,7 @@ public class PosTagger {
                 
         // Train and save model
         highOrderCrfModel = new HighOrderFastCRF<String>();
-        highOrderCrfModel.train(trainDataSequenceList, featureGenerator, 3, 1000, 1, true, 0.7, 0.0000001);
+        highOrderCrfModel.train(trainDataSequenceList, featureGenerator, 3, 1000, 1, false, 0.7, 0.0000001);
         
         highOrderCrfModel.write("learntModels/crfmodel");
     }

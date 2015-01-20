@@ -126,8 +126,12 @@ public class DataSequence {
                     continue;
                 }
                 List<Feature> featureList = featureTemplateToFeatureMap.get(template);
+                if (featureList == null) {
+                    continue;
+                }
                 for (Feature feature : featureList) {
                     LabelSequence seq = feature.getLabelSequence();
+                    
                     if (!curMap.containsKey(seq)) {
                         curMap.put(seq, new Pattern(seq));
                     }
@@ -137,9 +141,9 @@ public class DataSequence {
                     if (pos == 0) {
                         pat.prevPattern = Pattern.DUMMY_PATTERN;
                     } else {
-                        int order = seq.getLength();
+                        int labelLength = seq.getLength();
                         SortedMap<LabelSequence, Pattern> tempMap = mapList.get(pos);
-                        for (int i = 1; i <= order; ++i) {
+                        for (int i = 1; i <= labelLength; ++i) {
                             SortedMap<LabelSequence, Pattern> prevMap = mapList.get(pos - i);  
                             LabelSequence prefix = seq.createPrefix();
 
