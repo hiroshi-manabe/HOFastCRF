@@ -22,16 +22,13 @@ package hofastcrf;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,10 +45,14 @@ public class HighOrderFastCRF<T> {
 
     private HighOrderCRFData modelData;
     
+    public HighOrderFastCRF(boolean isDebugging) {
+        DebugInfoManager.getInstance().setDebugMode(isDebugging);
+    }
+    
     /**
      * Executes the training.
-     * @param rawDataSequenceList the list of the raw observations
-     * @param featureTemplateGenerator the feature template generator that generate feature templates from the raw observations
+     * @param observationSequenceList the list of the observations
+     * @param featureTemplateGenerator the feature template generator that generate feature templates from the observations
      * @param maxLabelLength the maximum length of the feature labels
      * @param maxIters the maximum iteration counts
      * @param concurrency
@@ -60,16 +61,21 @@ public class HighOrderFastCRF<T> {
      * @param epsilonForConvergence
      * @throws IOException 
      */
-    public void train(List<RawDataSequence<T>> rawDataSequenceList, FeatureTemplateGenerator<T> featureTemplateGenerator,
+    public void train(List<ObservationSequence<T>> observationSequenceList, FeatureTemplateGenerator<T> featureTemplateGenerator,
             int maxLabelLength, int maxIters, int concurrency,
             boolean useL1Regularization, double regularizationCoefficient, double epsilonForConvergence) throws IOException {
-        RawDataSet<T> rawDataSet = new RawDataSet<T>(rawDataSequenceList);
-        Map<String, Integer> labelMap = rawDataSet.generateLabelMap();
-        DataSet dataSet = rawDataSet.generateDataSet(featureTemplateGenerator, labelMap, maxLabelLength);
+        ObservationSet<T> observationSet = new ObservationSet<T>(observationSequenceList);
+        Map<String, Integer> labelMap = observationSet.generateLabelMap();
+        DataSet dataSet = observationSet.generateDataSet(featureTemplateGenerator, labelMap, maxLabelLength);
         Map<Feature, Integer> featureCountMap = dataSet.generateFeatureCountMap();
         Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap = new HashMap<FeatureTemplate, List<Feature>>();
         
         List<Feature> featureList = new ArrayList<Feature>();
+        
+        if (DebugInfoManager.getInstance().getDebugMode()) {
+            HighOrderCRFData data = new HighOrderCRFData(featureList, labelMap);
+            DebugInfoManager.getInstance().setDebugData("ReversedLabelMap", data.getReversedLabelMap());
+        }
         int[] featureCountArray = new int[featureCountMap.size()];
         
         int count = 0;
@@ -85,7 +91,6 @@ public class HighOrderFastCRF<T> {
             featureTemplateToFeatureMap.get(ft).add(f);
             ++count;
         }
-        dumpFeatures("features.txt", featureList, labelMap);
         
         List<PatternSetSequence> patternSetSequenceList = dataSet.generatePatternSetSequenceList(featureTemplateToFeatureMap);
         
@@ -110,42 +115,32 @@ public class HighOrderFastCRF<T> {
             }
         }
         modelData = new HighOrderCRFData(featureListToSave, labelMap);
+        dumpFeatures("features.txt");
     }
 
-    public String[][] decode(List<RawDataSequence<T>> rawData, FeatureTemplateGenerator<T> featureTemplateGenerator,
+    public String[][] decode(List<ObservationSequence<T>> observationSequenceList, FeatureTemplateGenerator<T> featureTemplateGenerator,
             int concurrency) throws InterruptedException {
-        Decoder<T> viterbi = new Decoder<T>(rawData, featureTemplateGenerator, modelData.getFeatureList(),
+        if (DebugInfoManager.getInstance().getDebugMode()) {
+            DebugInfoManager.getInstance().setDebugData("ReversedLabelMap", modelData.getReversedLabelMap());
+        }
+        Decoder<T> decoder = new Decoder<T>(observationSequenceList, featureTemplateGenerator, modelData.getFeatureList(),
                 modelData.getLabelMap());
-        Scheduler sch = new Scheduler(viterbi, 1, Scheduler.DYNAMIC_NEXT_AVAILABLE);
+        Scheduler sch = new Scheduler(decoder, 1, Scheduler.DYNAMIC_NEXT_AVAILABLE);
         sch.run();
-        return viterbi.getPredictedLabels();
+        return decoder.getPredictedLabels();
     }
     
-    public String[][] extractLabels(List<RawDataSequence<T>> rawDataSequenceList) {
-        String[][] ret = new String[rawDataSequenceList.size()][];
-        for (int i = 0; i < rawDataSequenceList.size(); ++i) {
-            List<String> labelList = rawDataSequenceList.get(i).getRawLabelList();
+    public String[][] extractLabels(List<ObservationSequence<T>> observationSequenceList) {
+        String[][] ret = new String[observationSequenceList.size()][];
+        for (int i = 0; i < observationSequenceList.size(); ++i) {
+            List<String> labelList = observationSequenceList.get(i).getLabelList();
             ret[i] = labelList.toArray(new String[labelList.size()]);
         }
         return ret;
     }
     
-    public void dumpFeatures(String filename, List<Feature> featureList, Map<String, Integer> labelMap) throws IOException {
-        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
-        Map<Integer, String> reversedMap = new HashMap<Integer, String>();
-        
-        for (Map.Entry<String, Integer> entry : labelMap.entrySet()) {
-            reversedMap.put(entry.getValue(), entry.getKey());
-        }
-        
-        for (Feature feature : featureList) {
-            out.print(feature.obs);
-            for (int label : feature.pat.labels) {
-                out.print("\t" + reversedMap.get(label));
-            }
-            out.println();
-        }
-        out.close();
+    public void dumpFeatures(String filename) throws IOException {
+        modelData.DumpFeatures(filename);
     }
 
     public void write(String filename) throws IOException {

@@ -20,8 +20,13 @@ along with HOFastCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package hofastcrf;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A class that represents a label pattern in the lattice of the high-order CRF.
@@ -56,6 +61,22 @@ public class Pattern {
         bestScore = 0.0;
         expWeight = 1.0;
         this.labelSequence = labelSequence;
+    }
+    
+    @Override
+    public String toString() {
+        if (!DebugInfoManager.getInstance().getDebugMode()) {
+            return "";
+        } else {
+            @SuppressWarnings("unchecked")
+            Map<Integer, String> reversedLabelMap = (Map<Integer, String>)DebugInfoManager.getInstance().getDebugData("ReversedLabelMap");
+            
+            ByteArrayOutputStream bs = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(bs);
+            ps.print(String.join("-", Arrays.stream(labelSequence.labels).boxed()
+                    .map(x -> { return reversedLabelMap.get(x); }).collect(Collectors.toList())));
+            return bs.toString();
+        }
     }
     
     static final Pattern DUMMY_PATTERN;

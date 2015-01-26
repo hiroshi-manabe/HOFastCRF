@@ -34,9 +34,9 @@ import ocr.CharDetails;
  */
 public class OCRFeatureTemplateGenerator extends FeatureTemplateGenerator<CharDetails> {
     
-	public List<FeatureTemplate> generateFeatureTemplatesAt(List<CharDetails> rawObservationList, int pos) {
+	public List<FeatureTemplate> generateFeatureTemplatesAt(List<CharDetails> observationList, int pos) {
         List<FeatureTemplate> obs = new ArrayList<FeatureTemplate>();
-        CharDetails cd = rawObservationList.get(pos);
+        CharDetails cd = observationList.get(pos);
         for (int r = 0; r < CharDetails.ROWS; r++) {
             for (int c = 0; c < CharDetails.COLS; c++) {
                 if (cd.getPixels(r, c) != 0) {

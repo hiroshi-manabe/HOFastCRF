@@ -38,10 +38,10 @@ public class AggregatedFeatureTemplateGenerator<T> extends
     
     @Override
     public List<FeatureTemplate> generateFeatureTemplatesAt(
-            List<T> rawObjectList, int pos) {
+            List<T> observationList, int pos) {
         List<FeatureTemplate> templateList = new ArrayList<FeatureTemplate>();
         for (FeatureTemplateGenerator<T> generator : generatorList) {
-            templateList.addAll(generator.generateFeatureTemplatesAt(rawObjectList, pos));
+            templateList.addAll(generator.generateFeatureTemplatesAt(observationList, pos));
         }
         return templateList;
     }

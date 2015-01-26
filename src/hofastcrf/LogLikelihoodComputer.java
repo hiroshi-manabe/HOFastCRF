@@ -25,7 +25,7 @@ import java.util.List;
 import parallel.Schedulable;
 
 /**
- * The class for computing the log likelihood of the PatternSetSequence (converted from the raw data).
+ * The class for computing the log likelihood of the PatternSetSequence (converted from the observation data).
  * @author Hiroshi Manabe
  */
 public class LogLikelihoodComputer implements Schedulable {

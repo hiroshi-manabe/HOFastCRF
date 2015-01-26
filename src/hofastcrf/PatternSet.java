@@ -178,9 +178,11 @@ public class PatternSet {
      * Initialize the best scores of the patterns at the beginning with their weights. 
      */
     void setFirstBestScores() {
-        for (Pattern pattern : patternList) {
+        for (int i = 1; i < patternList.size(); ++i) {
+            Pattern pattern = patternList.get(i);
             pattern.bestScore = pattern.expWeight;
         }
+        patternList.get(0).bestScore = 0.0;
     }
     
     /**
@@ -192,6 +194,7 @@ public class PatternSet {
             pattern.bestScoreForLabel = pattern.bestScore;
             pattern.bestPrefixPattern = pattern;
         }
+        patternList.get(0).bestScoreForLabel = 0.0;
     }
     
     /**

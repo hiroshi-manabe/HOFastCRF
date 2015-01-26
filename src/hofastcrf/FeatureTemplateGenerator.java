@@ -30,9 +30,9 @@ import java.util.List;
 public abstract class FeatureTemplateGenerator<T> {
     /**
      * Generates feature templates for a specific position.
-     * @param rawObservationList the whole list of the observations
+     * @param observationList the whole list of the observations
      * @param pos the position
      * @return
      */
-    public abstract List<FeatureTemplate> generateFeatureTemplatesAt(List<T> rawObservationList, int pos);
+    public abstract List<FeatureTemplate> generateFeatureTemplatesAt(List<T> observationList, int pos);
 }

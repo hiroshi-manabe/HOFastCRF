@@ -41,10 +41,10 @@ public class PrefixSuffixFeatureTemplateGenerator extends
     }
     
     @Override
-    public List<FeatureTemplate> generateFeatureTemplatesAt(List<String> rawObjectList, int pos) {
+    public List<FeatureTemplate> generateFeatureTemplatesAt(List<String> observationList, int pos) {
         List<FeatureTemplate> templateList = new ArrayList<FeatureTemplate>();
         
-        String curString = rawObjectList.get(pos);
+        String curString = observationList.get(pos);
         int strLen = curString.length();
         for (int affixLen = minLength; affixLen <= maxLength; ++affixLen) {
             if (affixLen > strLen) {

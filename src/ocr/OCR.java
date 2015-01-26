@@ -32,7 +32,7 @@ import ocr.features.OCRFeatureTemplateGenerator;
 import hofastcrf.AggregatedFeatureTemplateGenerator;
 import hofastcrf.FeatureTemplateGenerator;
 import hofastcrf.HighOrderFastCRF;
-import hofastcrf.RawDataSequence;
+import hofastcrf.ObservationSequence;
 import hofastcrf.Scorer;
 import hofastcrf.UnconditionalFeatureTemplateGenerator;
 
@@ -54,10 +54,10 @@ public class OCR {
         generator = gen; 
     }
 
-    public List<RawDataSequence<CharDetails>> readTagged(String filename, int trainFold, boolean isTraining) throws IOException {
+    public List<ObservationSequence<CharDetails>> readTagged(String filename, int trainFold, boolean isTraining) throws IOException {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
-        List<RawDataSequence<CharDetails>> td = new ArrayList<RawDataSequence<CharDetails>>();
+        List<ObservationSequence<CharDetails>> td = new ArrayList<ObservationSequence<CharDetails>>();
         List<CharDetails> inps = new ArrayList<CharDetails>();
         List<String> labels = new ArrayList<String>();
         String line;
@@ -89,7 +89,7 @@ public class OCR {
                 }
 
                 if (nextID == -1 && labels.size() > 0) {
-                    td.add(new RawDataSequence<CharDetails>(inps, labels, true));
+                    td.add(new ObservationSequence<CharDetails>(inps, labels, true));
                     inps = new ArrayList<CharDetails>();
                     labels = new ArrayList<String>();
                 }
@@ -109,23 +109,23 @@ public class OCR {
         dir.mkdirs();
         
         // Read training data and save the label map
-        List<RawDataSequence<CharDetails>> trainDataSequenceList = readTagged(trainFilename, trainFold, true);
+        List<ObservationSequence<CharDetails>> trainDataSequenceList = readTagged(trainFilename, trainFold, true);
         
         // Train and save model
-        highOrderCrfModel = new HighOrderFastCRF<CharDetails>();
+        highOrderCrfModel = new HighOrderFastCRF<CharDetails>(false);
         highOrderCrfModel.train(trainDataSequenceList, generator, 4, 1000, 4, true, 1.0, 0.001);
         highOrderCrfModel.write("learntModels/fold" + trainFold + "/crfmodel");
     }
 
     public void test() throws IOException, ClassNotFoundException, InterruptedException {
         // Read the model
-        HighOrderFastCRF<CharDetails> highOrderCRFModel = new HighOrderFastCRF<CharDetails>();
+        HighOrderFastCRF<CharDetails> highOrderCRFModel = new HighOrderFastCRF<CharDetails>(false);
         highOrderCRFModel.read("learntModels/fold" + trainFold + "/crfmodel");
         
         // Infer labels
         System.out.print("Inferring labels...");
         String testFilename = "letter.data";
-        List<RawDataSequence<CharDetails>> testData = readTagged(testFilename, trainFold, false);
+        List<ObservationSequence<CharDetails>> testData = readTagged(testFilename, trainFold, false);
         String[][] trueLabels = highOrderCRFModel.extractLabels(testData);
         
         long startTime = System.currentTimeMillis();

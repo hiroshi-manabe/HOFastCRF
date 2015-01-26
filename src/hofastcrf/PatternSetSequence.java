@@ -21,6 +21,7 @@ along with HOFastCRF. If not, see <http://www.gnu.org/licenses/>.
 package hofastcrf;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A class that represents the sequence of the pattern sets converted from a data sequence.
@@ -30,6 +31,7 @@ public class PatternSetSequence {
     
     List<PatternSet> patternSetList;
     Pattern dummyPattern;
+    Map<Integer, String> reversedLabelMapForDebugging = null;
     
     /**
      * Constructor.
@@ -104,11 +106,17 @@ public class PatternSetSequence {
         return ret;
     }
     
+    void setReversedLabelMapForDebugging(Map<Integer, String> reversedLabelMap) {
+        this.reversedLabelMapForDebugging = reversedLabelMap;
+    }
+    
     /**
      * Infers the labels.
      * @return
      */
     int[] decode() {
+        boolean isDebugging = DebugInfoManager.getInstance().getDebugMode();
+        
         for (PatternSet patternSet : patternSetList) {
             patternSet.initializeScores();
             patternSet.setPatternWeights();
@@ -117,10 +125,14 @@ public class PatternSetSequence {
         patternSetList.get(0).setFirstBestScores();
         
         for (int i = 1; i < patternSetList.size(); ++i) {
+            if (isDebugging) {
+                System.out.println("Position " + i);
+            }
+            
             int prevLabel = -1; 
             PatternSet patternSet = patternSetList.get(i);
             PatternSet prevPatternSet = patternSetList.get(i - 1);
-            int prevPatternSetIndex = 0;
+            int prevPatternSetIndex = prevPatternSet.patternList.size() - 1;
             
             for (int patternSetIndex = patternSet.patternList.size() - 1; patternSetIndex > 0; --patternSetIndex) {
                 Pattern pattern = patternSet.patternList.get(patternSetIndex);
@@ -128,6 +140,7 @@ public class PatternSetSequence {
                     prevPatternSet.resetBestScoresForLabel();
                     prevPatternSetIndex = prevPatternSet.patternList.size() - 1;
                 }
+                prevLabel = pattern.labelSequence.labels[0];
                 while (prevPatternSet.patternList.get(prevPatternSetIndex) != pattern.prevPattern) {
                     Pattern prevPattern = prevPatternSet.patternList.get(prevPatternSetIndex);
                     if (prevPattern.bestScoreForLabel > prevPattern.longestSuffixPattern.bestScoreForLabel) {
@@ -138,8 +151,23 @@ public class PatternSetSequence {
                 }
                 pattern.bestScore = pattern.prevPattern.bestScoreForLabel * pattern.expWeight;
                 pattern.bestPrevPattern = pattern.prevPattern.bestPrefixPattern;
+                
+                if (isDebugging) {
+                    System.out.print("Current Pattern: ");
+                    System.out.println(pattern);
+                    System.out.print("Weight: ");
+                    System.out.println(pattern.expWeight);
+                    System.out.print("Score: ");
+                    System.out.println(pattern.bestScore);
+                    System.out.print("Best prev pattern: ");
+                    System.out.println(pattern.bestPrevPattern);
+                    System.out.print("Best prev pattern score: ");
+                    System.out.println(pattern.bestPrevPattern.bestScore);
+                }
+                
+                --prevPatternSetIndex;
             }
-            patternSet.scaleBestScores();
+//            patternSet.scaleBestScores();
         }
         
         PatternSet lastPatternSet = patternSetList.get(patternSetList.size() - 1);

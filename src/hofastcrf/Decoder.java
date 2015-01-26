@@ -36,7 +36,7 @@ import parallel.Schedulable;
 public class Decoder<T> implements Schedulable {
 
     int curID; // Current task ID (for parallelization)
-    List<RawDataSequence<T>> rawDataSequenceList; // List of testing sequences
+    List<ObservationSequence<T>> observationSequenceList; // List of testing sequences
     FeatureTemplateGenerator<T> generator;
     final List<Feature> featureList;
     final Map<FeatureTemplate, List<Feature>> featureTemplateToFeatureMap;
@@ -47,19 +47,19 @@ public class Decoder<T> implements Schedulable {
 
     /**
      * Constructor.
-     * @param rawDataSequenceList
+     * @param observationSequenceList
      * @param generator
      * @param featureList the features appeared in the training set
      * @param labelMap
      */
-    public Decoder(List<RawDataSequence<T>> rawDataSequenceList, FeatureTemplateGenerator<T> generator, 
+    public Decoder(List<ObservationSequence<T>> observationSequenceList, FeatureTemplateGenerator<T> generator, 
             List<Feature> featureList, Map<String, Integer> labelMap) {
         curID = -1;
-        this.rawDataSequenceList = rawDataSequenceList;
+        this.observationSequenceList = observationSequenceList;
         this.generator = generator;
         this.featureList = featureList;
         this.labelMap = labelMap;
-        this.labelArrayArray = new String[rawDataSequenceList.size()][];
+        this.labelArrayArray = new String[observationSequenceList.size()][];
         
         featureTemplateToFeatureMap = new HashMap<FeatureTemplate, List<Feature>>();
         int maxOrder = 0;
@@ -93,9 +93,17 @@ public class Decoder<T> implements Schedulable {
      * Infers the labels and stores it.
      */
     public Object compute(int taskID) {
-        RawDataSequence<T> rawDataSequence = rawDataSequenceList.get(taskID);
-        DataSequence dataSequence = rawDataSequence.generateDataSequence(generator, labelMap, maxOrder);
+        ObservationSequence<T> observationSequence = observationSequenceList.get(taskID);
+        DataSequence dataSequence = observationSequence.generateDataSequence(generator, labelMap, maxOrder);
         PatternSetSequence patternSetSequence = dataSequence.generatePatternSetSequence(featureTemplateToFeatureMap);
+        
+        if (DebugInfoManager.getInstance().getDebugMode()) {
+            System.out.println("Decoding sequence No. " + taskID + "...");
+        }
+        
+        if (taskID == 55) {
+            taskID *= 1;
+        }
         
         int[] labels = patternSetSequence.decode();
         String[] strLabels = new String[labels.length];
@@ -108,7 +116,7 @@ public class Decoder<T> implements Schedulable {
     
     @Override
     public int getNumTasks() {
-        return rawDataSequenceList.size();
+        return observationSequenceList.size();
     }
     
     @Override

@@ -30,7 +30,7 @@ import java.util.List;
 import hofastcrf.AggregatedFeatureTemplateGenerator;
 import hofastcrf.FeatureTemplateGenerator;
 import hofastcrf.HighOrderFastCRF;
-import hofastcrf.RawDataSequence;
+import hofastcrf.ObservationSequence;
 import hofastcrf.Scorer;
 import hofastcrf.UnconditionalFeatureTemplateGenerator;
 import postagger.features.PrefixSuffixFeatureTemplateGenerator;
@@ -54,18 +54,18 @@ public class PosTagger {
         this.featureGenerator = gen;
     }
 
-    public List<RawDataSequence<String>> readData(String filename, boolean hasValidLabels) throws IOException {
+    public List<ObservationSequence<String>> readData(String filename, boolean hasValidLabels) throws IOException {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
-        List<RawDataSequence<String>> rawDataSequenceList = new ArrayList<RawDataSequence<String>>();
+        List<ObservationSequence<String>> observationSequenceList = new ArrayList<ObservationSequence<String>>();
         List<String> observationList = new ArrayList<String>();
         List<String> labelList = new ArrayList<String>();
         String line;
 
         while ((line = in.readLine()) != null) {
             if (line.isEmpty()) {
-                RawDataSequence<String> rawDataSequence = new RawDataSequence<String>(observationList, labelList, hasValidLabels);
-                rawDataSequenceList.add(rawDataSequence);
+                ObservationSequence<String> observationSequence = new ObservationSequence<String>(observationList, labelList, hasValidLabels);
+                observationSequenceList.add(observationSequence);
                 observationList = new ArrayList<String>();
                 labelList = new ArrayList<String>();
                 continue;
@@ -79,7 +79,7 @@ public class PosTagger {
         }
 
         in.close();
-        return rawDataSequenceList;
+        return observationSequenceList;
     }
     
     public void train() throws IOException {
@@ -88,11 +88,11 @@ public class PosTagger {
         String trainFilename = "train.txt";
         
         // Read training data and save the label map
-        List<RawDataSequence<String>> trainDataSequenceList = readData(trainFilename, true);
+        List<ObservationSequence<String>> trainDataSequenceList = readData(trainFilename, true);
                 
         // Train and save model
-        highOrderCrfModel = new HighOrderFastCRF<String>();
-        highOrderCrfModel.train(trainDataSequenceList, featureGenerator, 3, 1000, 1, false, 0.7, 0.0000001);
+        highOrderCrfModel = new HighOrderFastCRF<String>(false);
+        highOrderCrfModel.train(trainDataSequenceList, featureGenerator, 3, 1000, 1, false, 0.7, 0.0001);
         
         highOrderCrfModel.write("learntModels/crfmodel");
     }
@@ -100,13 +100,13 @@ public class PosTagger {
     public void test() throws IOException, ClassNotFoundException, InterruptedException {
         
         // Read the model
-        HighOrderFastCRF<String> highOrderCRFModel = new HighOrderFastCRF<String>();
+        HighOrderFastCRF<String> highOrderCRFModel = new HighOrderFastCRF<String>(false);
         highOrderCRFModel.read("learntModels/crfmodel");
         
         // Infer labels
         System.out.print("Inferring labels...");
         String testFilename = "test.txt";
-        List<RawDataSequence<String>> testDataSequenceList = readData(testFilename, false);
+        List<ObservationSequence<String>> testDataSequenceList = readData(testFilename, false);
         String[][] trueLabels = highOrderCRFModel.extractLabels(testDataSequenceList);
         
         long startTime = System.currentTimeMillis();

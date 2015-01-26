@@ -26,20 +26,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A class that represents a raw data set (set of raw data sequences).
+ * A class that represents a observation set (list of observation sequences).
  * @author Hiroshi Manabe
  * @param <T> The class of the observations
  */
-public class RawDataSet<T> {
+public class ObservationSet<T> {
     
-    List<RawDataSequence<T>> rawDataSequenceList;
+    List<ObservationSequence<T>> observationSequenceList;
     
     /**
      * Constructor.
-     * @param rawDataSequenceList
+     * @param observationSequenceList
      */
-    public RawDataSet(List<RawDataSequence<T>> rawDataSequenceList) {
-        this.rawDataSequenceList = rawDataSequenceList;
+    public ObservationSet(List<ObservationSequence<T>> observationSequenceList) {
+        this.observationSequenceList = observationSequenceList;
     }
     
     /**
@@ -48,11 +48,11 @@ public class RawDataSet<T> {
      */
     public Map<String, Integer> generateLabelMap() {
         Map<String, Integer> labelMap = new HashMap<String, Integer>();
-        for (RawDataSequence<T> seq : rawDataSequenceList) {
-            List<String> rawLabelList = seq.getRawLabelList();
-            for (String rawLabel : rawLabelList) {
-                if (!labelMap.containsKey(rawLabel)) {
-                    labelMap.put(rawLabel, labelMap.size());
+        for (ObservationSequence<T> seq : observationSequenceList) {
+            List<String> labelList = seq.getLabelList();
+            for (String label : labelList) {
+                if (!labelMap.containsKey(label)) {
+                    labelMap.put(label, labelMap.size());
                 }
             }
         }
@@ -68,8 +68,8 @@ public class RawDataSet<T> {
      */
     public DataSet generateDataSet(FeatureTemplateGenerator<T> featureTemplateGenerator, Map<String, Integer> labelMap, int maxOrder) {
         List<DataSequence> dataSequenceList = new ArrayList<DataSequence>();
-        for (RawDataSequence<T> rawDataSequence : rawDataSequenceList) {
-            dataSequenceList.add(rawDataSequence.generateDataSequence(featureTemplateGenerator, labelMap, maxOrder));
+        for (ObservationSequence<T> observationSequence : observationSequenceList) {
+            dataSequenceList.add(observationSequence.generateDataSequence(featureTemplateGenerator, labelMap, maxOrder));
         }
         return new DataSet(dataSequenceList);
     }

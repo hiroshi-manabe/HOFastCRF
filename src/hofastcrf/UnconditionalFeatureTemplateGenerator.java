@@ -42,7 +42,7 @@ public class UnconditionalFeatureTemplateGenerator<T> extends FeatureTemplateGen
     
     @Override
     public List<FeatureTemplate> generateFeatureTemplatesAt(
-            List<T> rawObjectList, int pos) {
+            List<T> observationList, int pos) {
         List<FeatureTemplate> templateList = new ArrayList<FeatureTemplate>();
         for (int i = 1; i <= Math.min(maxLabelLength, pos + 1); ++i) {
             templateList.add(new FeatureTemplate("", i));

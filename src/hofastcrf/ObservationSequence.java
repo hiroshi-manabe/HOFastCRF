@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Class for a raw data sequence
+ * Class for a observation data sequence
  * @author Hiroshi Manabe
  * @param <T> The class of the observations
  */
-public class RawDataSequence<T> {
+public class ObservationSequence<T> {
     
-    List<T> rawObservationList;
-    List<String> rawLabelList;
+    List<T> observationList;
+    List<String> labelList;
     boolean hasValidLabels;
     
     /**
@@ -41,14 +41,18 @@ public class RawDataSequence<T> {
      * @param inps Observation array
      * @param labelm Label map
      */
-    public RawDataSequence(List<T> rawObservationList, List<String> rawLabelList, boolean hasValidLabels) {
-        this.rawObservationList = rawObservationList;
-        this.rawLabelList = rawLabelList;
+    public ObservationSequence(List<T> observationList, List<String> labelList, boolean hasValidLabels) {
+        this.observationList = observationList;
+        this.labelList = labelList;
         this.hasValidLabels = hasValidLabels;
     }
     
-    public List<String> getRawLabelList() {
-        return rawLabelList;
+    public List<T> getObservationList() {
+        return observationList;
+    }
+    
+    public List<String> getLabelList() {
+        return labelList;
     }
     
     /**
@@ -60,10 +64,10 @@ public class RawDataSequence<T> {
      */
     public DataSequence generateDataSequence(FeatureTemplateGenerator<T> featureTemplateGenerator, Map<String, Integer> labelMap, int maxLabelLength) {
         List<List<FeatureTemplate>> featureTemplateListList = new ArrayList<List<FeatureTemplate>>();
-        int[] labels = new int[rawObservationList.size()];
-        for (int pos = 0; pos < rawObservationList.size(); ++pos) {
-            featureTemplateListList.add(featureTemplateGenerator.generateFeatureTemplatesAt(rawObservationList, pos));
-            labels[pos] = hasValidLabels ? labelMap.get(rawLabelList.get(pos)) : 0;
+        int[] labels = new int[observationList.size()];
+        for (int pos = 0; pos < observationList.size(); ++pos) {
+            featureTemplateListList.add(featureTemplateGenerator.generateFeatureTemplatesAt(observationList, pos));
+            labels[pos] = hasValidLabels ? labelMap.get(labelList.get(pos)) : 0;
         }
         return new DataSequence(featureTemplateListList, labels, maxLabelLength, hasValidLabels);
     }

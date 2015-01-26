@@ -20,7 +20,12 @@ along with HOFastCRF. If not, see <http://www.gnu.org/licenses/>.
 
 package hofastcrf;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +33,10 @@ import java.util.Map;
  * The class for the serialization of the high-order CRF model data.
  * @author Hiroshi Manabe
  */
-@SuppressWarnings("serial")
+
 public class HighOrderCRFData implements Serializable {
+    
+    private static final long serialVersionUID = 100L;
     
     private final List<Feature> featureList;
     private final Map<String, Integer> labelMap;
@@ -50,5 +57,31 @@ public class HighOrderCRFData implements Serializable {
     
     public Map<String, Integer> getLabelMap() {
         return labelMap;
+    }
+    
+    public Map<Integer, String> getReversedLabelMap() {
+        Map<Integer, String> reversedMap = new HashMap<Integer, String>();
+        
+        for (Map.Entry<String, Integer> entry : labelMap.entrySet()) {
+            reversedMap.put(entry.getValue(), entry.getKey());
+        }
+        return reversedMap;
+    }
+    
+    public void DumpFeatures(String filename) throws IOException {
+        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
+        Map<Integer, String> reversedMap = getReversedLabelMap();
+        
+        for (Feature feature : featureList) {
+            out.print(feature.expWeight);
+            out.print("\t");
+            out.print(feature.obs);
+            for (int label : feature.pat.labels) {
+                out.print("\t" + reversedMap.get(label));
+            }
+            out.println();
+        }
+        out.close();
+        
     }
 }

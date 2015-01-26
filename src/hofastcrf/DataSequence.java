@@ -31,7 +31,7 @@ import java.util.TreeMap;
  * A data sequence is represented as a list (one for each position) of lists of
  * feature templates that are activated at that position.
  * 
- * A data sequence can be generated from a raw data sequence and a feature template generator.
+ * A data sequence can be generated from an observation sequence and a feature template generator.
  * A data sequence can in turn generate a pattern set sequence, which is used for the real computation.
  * 
  * @author Hiroshi Manabe

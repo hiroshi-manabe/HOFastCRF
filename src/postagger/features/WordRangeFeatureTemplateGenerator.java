@@ -47,12 +47,12 @@ public class WordRangeFeatureTemplateGenerator extends
     
     @Override
     public List<FeatureTemplate> generateFeatureTemplatesAt(
-            List<String> rawObjectList, int pos) {
+            List<String> observationList, int pos) {
         StringBuilder b = new StringBuilder(tag);
-        int len = rawObjectList.size();
+        int len = observationList.size();
         for (int i = startPos; i <= endPos; ++i) {
             int curPos = pos + i;
-            b.append((curPos >= 0 && curPos < len) ? rawObjectList.get(curPos) : "");
+            b.append((curPos >= 0 && curPos < len) ? observationList.get(curPos) : "");
             if (i < endPos) {
                 b.append("_");
             }
